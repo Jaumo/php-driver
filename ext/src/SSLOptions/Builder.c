@@ -24,14 +24,9 @@ zend_class_entry *php_driver_ssl_builder_ce = NULL;
 static int
 file_get_contents(char *path, char **output, int *len)
 {
-#if PHP_MAJOR_VERSION >= 7
   zend_string *str;
   php_stream *stream = php_stream_open_wrapper(path, "rb",
                          USE_PATH|REPORT_ERRORS, NULL);
-#else
-  php_stream *stream = php_stream_open_wrapper(path, "rb",
-                         USE_PATH|REPORT_ERRORS|ENFORCE_SAFE_MODE, NULL);
-#endif
 
   if (!stream) {
     zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
@@ -39,7 +34,6 @@ file_get_contents(char *path, char **output, int *len)
     return 0;
   }
 
-#if PHP_MAJOR_VERSION >= 7
   str = php_stream_copy_to_mem(stream, PHP_STREAM_COPY_ALL, 0);
   if (str) {
     *output = estrndup(str->val, str->len);
@@ -49,9 +43,6 @@ file_get_contents(char *path, char **output, int *len)
     php_stream_close(stream);
     return 0;
   }
-#else
-  *len = php_stream_copy_to_mem(stream, output, PHP_STREAM_COPY_ALL, 0);
-#endif
 
   php_stream_close(stream);
   return 1;

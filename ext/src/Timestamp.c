@@ -129,11 +129,7 @@ PHP_METHOD(Timestamp, toDateTime)
   PHP5TO7_ZVAL_MAYBE_MAKE(datetime);
   php_date_instantiate(php_date_get_date_ce(), datetime);
 
-#if PHP_MAJOR_VERSION >= 7
   datetime_obj = php_date_obj_from_obj(Z_OBJ_P(datetime));
-#else
-  datetime_obj = zend_object_store_get_object(datetime);
-#endif
 
   str_len      = spprintf(&str, 0, "@%ld", (long) (self->timestamp / 1000));
   php_date_initialize(datetime_obj, str, str_len, NULL, NULL, 0);

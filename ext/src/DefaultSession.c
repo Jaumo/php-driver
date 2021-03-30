@@ -382,20 +382,11 @@ bind_arguments(CassStatement *statement, HashTable *arguments)
   php5to7_zval *current;
   ulong num_key;
 
-#if PHP_MAJOR_VERSION >= 7
   zend_string *key;
   ZEND_HASH_FOREACH_KEY_VAL(arguments, num_key, key, current) {
     if (key) {
       rc = bind_argument_by_name(statement, key->val,
                                  PHP5TO7_ZVAL_MAYBE_DEREF(current));
-#else
-  char *str_key;
-  uint str_len;
-  PHP5TO7_ZEND_HASH_FOREACH_KEY_VAL(arguments, num_key, str_key, str_len, current) {
-    if (str_key) {
-      rc = bind_argument_by_name(statement, str_key,
-                                 PHP5TO7_ZVAL_MAYBE_DEREF(current));
-#endif
     } else {
       rc = bind_argument_by_index(statement, num_key, PHP5TO7_ZVAL_MAYBE_DEREF(current));
     }
@@ -453,11 +444,7 @@ create_batch(php_driver_statement *batch,
     HashTable *arguments;
     CassStatement *stmt;
 
-#if PHP_MAJOR_VERSION >= 7
     php_driver_batch_statement_entry *batch_statement_entry = (php_driver_batch_statement_entry *)Z_PTR_P(current);
-#else
-    php_driver_batch_statement_entry *batch_statement_entry = *((php_driver_batch_statement_entry **)current);
-#endif
 
     if (PHP5TO7_Z_TYPE_MAYBE_P(batch_statement_entry->statement) == IS_STRING) {
       simple_statement.type = PHP_DRIVER_SIMPLE_STATEMENT;

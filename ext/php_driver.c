@@ -309,28 +309,16 @@ throw_invalid_argument(zval *object,
     char* cls_name = NULL;
 #endif
 
-#if PHP_MAJOR_VERSION >= 7
     size_t cls_len;
-#else
-    zend_uint cls_len;
-#endif
 
-#if PHP_MAJOR_VERSION >= 7
     zend_string* str  = Z_OBJ_HANDLER_P(object, get_class_name)(Z_OBJ_P(object));
     cls_name = str->val;
     cls_len = str->len;
-#else
-    Z_OBJ_HANDLER_P(object, get_class_name)(object, &cls_name, &cls_len, 0);
-#endif
     if (cls_name) {
       zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
                               "%s must be %s, an instance of %.*s given",
                               object_name, expected_type, (int)cls_len, cls_name);
-#if PHP_MAJOR_VERSION >= 7
       zend_string_release(str);
-#else
-      efree((void*) cls_name);
-#endif
     } else {
       zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
                               "%s must be %s, an instance of Unknown Class given",
@@ -367,11 +355,7 @@ PHP_INI_MH(OnUpdateLogLevel)
     } else {
       php_error_docref(NULL, E_NOTICE,
                        PHP_DRIVER_NAME " | Unknown log level '%s', using 'ERROR'",
-#if PHP_MAJOR_VERSION >= 7
                        ZSTR_VAL(new_value));
-#else
-                       new_value);
-#endif
       cass_log_set_level(CASS_LOG_ERROR);
     }
   }

@@ -325,11 +325,7 @@ php_driver_collection_append(CassCollection *collection, zval *value, CassValueT
     CHECK_ERROR(cass_collection_append_bytes(collection, blob->data, blob->size));
     break;
   case CASS_VALUE_TYPE_BOOLEAN:
-#if PHP_MAJOR_VERSION >= 7
     CHECK_ERROR(cass_collection_append_bool(collection, Z_TYPE_P(value) == IS_TRUE ? cass_true : cass_false));
-#else
-    CHECK_ERROR(cass_collection_append_bool(collection, Z_BVAL_P(value)));
-#endif
     break;
   case CASS_VALUE_TYPE_DOUBLE:
     CHECK_ERROR(cass_collection_append_double(collection, Z_DVAL_P(value)));
@@ -468,11 +464,7 @@ php_driver_tuple_set(CassTuple *tuple, php5to7_ulong index, zval *value, CassVal
     CHECK_ERROR(cass_tuple_set_bytes(tuple, index, blob->data, blob->size));
     break;
   case CASS_VALUE_TYPE_BOOLEAN:
-#if PHP_MAJOR_VERSION >= 7
     CHECK_ERROR(cass_tuple_set_bool(tuple, index, Z_TYPE_P(value) == IS_TRUE ? cass_true : cass_false));
-#else
-    CHECK_ERROR(cass_tuple_set_bool(tuple, index, Z_BVAL_P(value)));
-#endif
     break;
   case CASS_VALUE_TYPE_DOUBLE:
     CHECK_ERROR(cass_tuple_set_double(tuple, index, Z_DVAL_P(value)));
@@ -613,11 +605,7 @@ php_driver_user_type_set(CassUserType *ut,
     CHECK_ERROR(cass_user_type_set_bytes_by_name(ut, name, blob->data, blob->size));
     break;
   case CASS_VALUE_TYPE_BOOLEAN:
-#if PHP_MAJOR_VERSION >= 7
     CHECK_ERROR(cass_user_type_set_bool_by_name(ut, name, Z_TYPE_P(value) == IS_TRUE ? cass_true : cass_false));
-#else
-    CHECK_ERROR(cass_user_type_set_bool_by_name(ut, name, Z_BVAL_P(value)));
-#endif
     break;
   case CASS_VALUE_TYPE_DOUBLE:
     CHECK_ERROR(cass_user_type_set_double_by_name(ut, name, Z_DVAL_P(value)));

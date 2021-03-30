@@ -19,11 +19,7 @@
 #include "php_driver_types.h"
 #include "util/consistency.h"
 
-#if PHP_MAJOR_VERSION >= 7
 #include <zend_smart_str.h>
-#else
-#include <ext/standard/php_smart_str.h>
-#endif
 
 zend_class_entry *php_driver_cluster_builder_ce = NULL;
 
@@ -154,22 +150,12 @@ PHP_METHOD(ClusterBuilder, build)
   if (self->persist) {
     php5to7_zend_resource_le resource;
 
-#if PHP_MAJOR_VERSION >= 7
     ZVAL_NEW_PERSISTENT_RES(&resource, 0, cluster->cluster, php_le_php_driver_cluster());
 
     PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list),
                              cluster->hash_key, cluster->hash_key_len + 1,
                              &resource, sizeof(php5to7_zend_resource_le));
     PHP_DRIVER_G(persistent_clusters)++;
-#else
-    resource.type = php_le_php_driver_cluster();
-    resource.ptr = cluster->cluster;
-
-    PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list),
-                             cluster->hash_key, cluster->hash_key_len + 1,
-                             resource, sizeof(php5to7_zend_resource_le));
-    PHP_DRIVER_G(persistent_clusters)++;
-#endif
   }
 }
 
@@ -274,12 +260,8 @@ PHP_METHOD(ClusterBuilder, withContactPoints)
   smart_str_0(&contactPoints);
 
   efree(self->contact_points);
-#if PHP_MAJOR_VERSION >= 7
   self->contact_points = estrndup(contactPoints.s->val, contactPoints.s->len);
   smart_str_free(&contactPoints);
-#else
-  self->contact_points = contactPoints.c;
-#endif
 
   RETURN_ZVAL(getThis(), 1, 0);
 }
@@ -394,12 +376,8 @@ PHP_METHOD(ClusterBuilder, withBlackListHosts)
   smart_str_0(&blacklist_hosts);
 
   efree(self->blacklist_hosts);
-#if PHP_MAJOR_VERSION >= 7
   self->blacklist_hosts = estrndup(blacklist_hosts.s->val, blacklist_hosts.s->len);
   smart_str_free(&blacklist_hosts);
-#else
-  self->blacklist_hosts = blacklist_hosts.c;
-#endif
 
   RETURN_ZVAL(getThis(), 1, 0);
 }
@@ -439,12 +417,8 @@ PHP_METHOD(ClusterBuilder, withWhiteListHosts)
   smart_str_0(&whitelist_hosts);
 
   efree(self->whitelist_hosts);
-#if PHP_MAJOR_VERSION >= 7
   self->whitelist_hosts = estrndup(whitelist_hosts.s->val, whitelist_hosts.s->len);
   smart_str_free(&whitelist_hosts);
-#else
-  self->whitelist_hosts = whitelist_hosts.c;
-#endif
 
   RETURN_ZVAL(getThis(), 1, 0);
 }
@@ -484,12 +458,8 @@ PHP_METHOD(ClusterBuilder, withBlackListDCs)
   smart_str_0(&blacklist_dcs);
 
   efree(self->blacklist_dcs);
-#if PHP_MAJOR_VERSION >= 7
   self->blacklist_dcs = estrndup(blacklist_dcs.s->val, blacklist_dcs.s->len);
   smart_str_free(&blacklist_dcs);
-#else
-  self->blacklist_dcs = blacklist_dcs.c;
-#endif
 
   RETURN_ZVAL(getThis(), 1, 0);
 }
@@ -529,12 +499,8 @@ PHP_METHOD(ClusterBuilder, withWhiteListDCs)
   smart_str_0(&whitelist_dcs);
 
   efree(self->whitelist_dcs);
-#if PHP_MAJOR_VERSION >= 7
   self->whitelist_dcs = estrndup(whitelist_dcs.s->val, whitelist_dcs.s->len);
   smart_str_free(&whitelist_dcs);
-#else
-  self->whitelist_dcs = whitelist_dcs.c;
-#endif
 
   RETURN_ZVAL(getThis(), 1, 0);
 }

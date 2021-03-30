@@ -92,16 +92,9 @@ PHP_METHOD(DefaultCluster, connect)
       psession->session = php_driver_add_ref(session->session);
       psession->future  = future;
 
-#if PHP_MAJOR_VERSION >= 7
       ZVAL_NEW_PERSISTENT_RES(&resource, 0, psession, php_le_php_driver_session());
       PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, &resource, sizeof(php5to7_zend_resource_le));
       PHP_DRIVER_G(persistent_sessions)++;
-#else
-      resource.type = php_le_php_driver_session();
-      resource.ptr = psession;
-      PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, resource, sizeof(php5to7_zend_resource_le));
-      PHP_DRIVER_G(persistent_sessions)++;
-#endif
     }
   }
 
@@ -186,16 +179,9 @@ PHP_METHOD(DefaultCluster, connectAsync)
     psession->session = php_driver_add_ref(future->session);
     psession->future  = future->future;
 
-#if PHP_MAJOR_VERSION >= 7
     ZVAL_NEW_PERSISTENT_RES(&resource, 0, psession, php_le_php_driver_session());
     PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, &resource, sizeof(php5to7_zend_resource_le));
     PHP_DRIVER_G(persistent_sessions)++;
-#else
-      resource.type = php_le_php_driver_session();
-      resource.ptr = psession;
-      PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, resource, sizeof(php5to7_zend_resource_le));
-      PHP_DRIVER_G(persistent_sessions)++;
-#endif
 
   }
 }

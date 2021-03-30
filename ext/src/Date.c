@@ -97,11 +97,7 @@ PHP_METHOD(Date, toDateTime)
   PHP5TO7_ZVAL_MAYBE_MAKE(datetime);
   php_date_instantiate(php_date_get_date_ce(), PHP5TO7_ZVAL_MAYBE_P(datetime));
 
-#if PHP_MAJOR_VERSION >= 7
   datetime_obj = php_date_obj_from_obj(Z_OBJ(datetime));
-#else
-  datetime_obj = zend_object_store_get_object(datetime);
-#endif
 
   str_len = spprintf(&str, 0, "%lld",
                      cass_date_time_to_epoch(self->date,

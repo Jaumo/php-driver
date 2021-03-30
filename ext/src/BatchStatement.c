@@ -21,11 +21,7 @@ zend_class_entry *php_driver_batch_statement_ce = NULL;
 
 void php_driver_batch_statement_entry_dtor(php5to7_dtor dest)
 {
-#if PHP_MAJOR_VERSION >= 7
   php_driver_batch_statement_entry *batch_statement_entry = Z_PTR_P(dest);
-#else
-  php_driver_batch_statement_entry *batch_statement_entry = *((php_driver_batch_statement_entry **) dest);
-#endif
 
   zval_ptr_dtor(&batch_statement_entry->statement);
   PHP5TO7_ZVAL_MAYBE_DESTROY(batch_statement_entry->arguments);
@@ -68,9 +64,7 @@ PHP_METHOD(BatchStatement, add)
   php_driver_batch_statement_entry *batch_statement_entry = NULL;
   php_driver_statement *self = NULL;
 
-#if PHP_MAJOR_VERSION >= 7
   zval entry;
-#endif
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|z", &statement, &arguments) == FAILURE) {
     return;
@@ -95,14 +89,8 @@ PHP_METHOD(BatchStatement, add)
     PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(batch_statement_entry->arguments), arguments);
   }
 
-#if PHP_MAJOR_VERSION >= 7
   ZVAL_PTR(&entry, batch_statement_entry);
   zend_hash_next_index_insert(&self->data.batch.statements, &entry);
-#else
-  zend_hash_next_index_insert(&self->data.batch.statements,
-                              &batch_statement_entry, sizeof(php_driver_batch_statement_entry *),
-                              NULL);
-#endif
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo__construct, 0, ZEND_RETURN_VALUE, 0)

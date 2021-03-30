@@ -18,11 +18,7 @@
 #include "php_driver_types.h"
 #include "util/types.h"
 
-#if PHP_MAJOR_VERSION >= 7
 #include <zend_smart_str.h>
-#else
-#include <ext/standard/php_smart_str.h>
-#endif
 #include "src/Map.h"
 
 zend_class_entry *php_driver_type_map_ce = NULL;

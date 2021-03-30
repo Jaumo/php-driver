@@ -64,9 +64,6 @@ php_driver_tuple_populate(php_driver_tuple *tuple, zval *array)
     }
   } PHP5TO7_ZEND_HASH_FOREACH_END(&type->data.tuple.types);
 
-#if PHP_MAJOR_VERSION < 7
-  zval_ptr_dtor(&null);
-#endif
 }
 
 /* {{{ Tuple::__construct(types) */
@@ -403,11 +400,7 @@ php_driver_tuple_new(zend_class_entry *ce)
       PHP5TO7_ZEND_OBJECT_ECALLOC(tuple, ce);
 
   zend_hash_init(&self->values, 0, NULL, ZVAL_PTR_DTOR, 0);
-#if PHP_MAJOR_VERSION >= 7
   self->pos = HT_INVALID_IDX;
-#else
-  self->pos = NULL;
-#endif
   self->dirty = 1;
   PHP5TO7_ZVAL_UNDEF(self->type);
 

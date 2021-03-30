@@ -19,11 +19,7 @@
 #include "util/types.h"
 #include "src/Tuple.h"
 #include "util/collections.h"
-#if PHP_MAJOR_VERSION >= 7
 #include <zend_smart_str.h>
-#else
-#include <ext/standard/php_smart_str.h>
-#endif
 
 zend_class_entry *php_driver_type_tuple_ce = NULL;
 

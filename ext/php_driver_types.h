@@ -17,7 +17,6 @@
 #ifndef PHP_DRIVER_TYPES_H
 #define PHP_DRIVER_TYPES_H
 
-#if PHP_MAJOR_VERSION >= 7
 #define PHP_DRIVER_BEGIN_OBJECT_TYPE(type_name) \
   typedef struct php_driver_##type_name##_ {
 
@@ -27,16 +26,7 @@
   static inline php_driver_##type_name *php_driver_##type_name##_object_fetch(zend_object *obj) { \
     return (php_driver_##type_name *)((char *)obj - XtOffsetOf(php_driver_##type_name, zval));        \
   }
-#else
-#define PHP_DRIVER_BEGIN_OBJECT_TYPE(type_name) \
-  typedef struct php_driver_##type_name##_ {        \
-    zend_object zval;
 
-#define PHP_DRIVER_END_OBJECT_TYPE(type_name) \
-  } php_driver_##type_name;
-#endif
-
-#if PHP_MAJOR_VERSION >= 7
   #define PHP_DRIVER_GET_NUMERIC(obj) php_driver_numeric_object_fetch(Z_OBJ_P(obj))
   #define PHP_DRIVER_GET_BLOB(obj) php_driver_blob_object_fetch(Z_OBJ_P(obj))
   #define PHP_DRIVER_GET_TIMESTAMP(obj) php_driver_timestamp_object_fetch(Z_OBJ_P(obj))
@@ -74,45 +64,6 @@
   #define PHP_DRIVER_GET_RETRY_POLICY(obj) php_driver_retry_policy_object_fetch(Z_OBJ_P(obj))
   #define PHP_DRIVER_GET_TIMESTAMP_GEN(obj) php_driver_timestamp_gen_object_fetch(Z_OBJ_P(obj))
   #define PHP_DRIVER_GET_DURATION(obj) php_driver_duration_object_fetch(Z_OBJ_P(obj))
-#else
-  #define PHP_DRIVER_GET_NUMERIC(obj) ((php_driver_numeric *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_BLOB(obj) ((php_driver_blob *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_TIMESTAMP(obj) ((php_driver_timestamp *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_DATE(obj) ((php_driver_date *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_TIME(obj) ((php_driver_time *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_UUID(obj) ((php_driver_uuid *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_INET(obj) ((php_driver_inet *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_COLLECTION(obj) ((php_driver_collection *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_MAP(obj) ((php_driver_map *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_SET(obj) ((php_driver_set *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_TUPLE(obj) ((php_driver_tuple *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_USER_TYPE_VALUE(obj) ((php_driver_user_type_value *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_CLUSTER(obj) ((php_driver_cluster *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_STATEMENT(obj) ((php_driver_statement *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_EXECUTION_OPTIONS(obj) ((php_driver_execution_options *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_ROWS(obj) ((php_driver_rows *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_FUTURE_ROWS(obj) ((php_driver_future_rows *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_CLUSTER_BUILDER(obj) ((php_driver_cluster_builder *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_FUTURE_PREPARED_STATEMENT(obj) ((php_driver_future_prepared_statement *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_FUTURE_VALUE(obj) ((php_driver_future_value *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_FUTURE_CLOSE(obj) ((php_driver_future_close *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_FUTURE_SESSION(obj) ((php_driver_future_session *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_SESSION(obj) ((php_driver_session *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_SSL(obj) ((php_driver_ssl *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_SSL_BUILDER(obj) ((php_driver_ssl_builder *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_SCHEMA(obj) ((php_driver_schema *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_KEYSPACE(obj) ((php_driver_keyspace *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_TABLE(obj) ((php_driver_table *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_COLUMN(obj) ((php_driver_column *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_INDEX(obj) ((php_driver_index *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_MATERIALIZED_VIEW(obj) ((php_driver_materialized_view *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_FUNCTION(obj) ((php_driver_function *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_AGGREGATE(obj) ((php_driver_aggregate *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_TYPE(obj) ((php_driver_type *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_RETRY_POLICY(obj) ((php_driver_retry_policy *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_TIMESTAMP_GEN(obj) ((php_driver_timestamp_gen *)zend_object_store_get_object((obj)))
-  #define PHP_DRIVER_GET_DURATION(obj) ((php_driver_duration *)zend_object_store_get_object((obj)))
-#endif
 
 typedef enum {
   PHP_DRIVER_BIGINT,

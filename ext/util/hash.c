@@ -45,23 +45,14 @@ php_driver_value_hash(zval* zvalue) {
 
   case IS_DOUBLE: return double_hash(Z_DVAL_P(zvalue));
 
-#if PHP_MAJOR_VERSION >= 7
   case IS_TRUE: return 1;
   case IS_FALSE: return 0;
-#else
-  case IS_BOOL: return Z_BVAL_P(zvalue);
-#endif
 
   case IS_STRING:
     return zend_inline_hash_func(Z_STRVAL_P(zvalue), Z_STRLEN_P(zvalue));
 
-#if PHP_MAJOR_VERSION >= 7
   case IS_OBJECT:
     return ((php_driver_value_handlers *)Z_OBJ_P(zvalue)->handlers)->hash_value(zvalue);
-#else
-  case IS_OBJECT:
-    return ((php_driver_value_handlers *)Z_OBJVAL_P(zvalue).handlers)->hash_value(zvalue);
-#endif
 
   default:
     break;
@@ -99,27 +90,17 @@ php_driver_value_compare(zval* zvalue1, zval* zvalue2) {
   case IS_DOUBLE:
     return double_compare(Z_DVAL_P(zvalue1), Z_DVAL_P(zvalue2));
 
-#if PHP_MAJOR_VERSION >= 7
   case IS_TRUE:
     return Z_TYPE_P(zvalue2) == IS_TRUE ? 0 : 1;
 
   case IS_FALSE:
     return Z_TYPE_P(zvalue2) == IS_FALSE ? 0 : -1;
-#else
-  case IS_BOOL:
-    return PHP_DRIVER_COMPARE(Z_BVAL_P(zvalue1), Z_BVAL_P(zvalue2));
-#endif
 
   case IS_STRING:
     return zend_binary_zval_strcmp(zvalue1, zvalue2);
 
-#if PHP_MAJOR_VERSION >= 7
   case IS_OBJECT:
     return Z_OBJ_P(zvalue1)->handlers->compare_objects(zvalue1, zvalue2);
-#else
-  case IS_OBJECT:
-    return Z_OBJVAL_P(zvalue1).handlers->compare_objects(zvalue1, zvalue2);
-#endif
 
   default:
     break;
@@ -132,17 +113,10 @@ int php_driver_data_compare(const void* a, const void* b) {
   Bucket *f, *s;
   zval *first, *second;
 
-#if PHP_MAJOR_VERSION >= 7
   f = (Bucket *)a;
   s = (Bucket *)b;
   first = &f->val;
   second = &s->val;
-#else
-  f = *((Bucket **) a);
-  s = *((Bucket **) b);
-  first = *((zval **) f->pData);
-  second = *((zval **) s->pData);
-#endif
 
   return php_driver_value_compare(first, second);
 }

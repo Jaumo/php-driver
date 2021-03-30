@@ -18,11 +18,7 @@
 #include "php_driver_globals.h"
 #include "php_driver_types.h"
 #include "util/types.h"
-#if PHP_MAJOR_VERSION >= 7
 #include <zend_smart_str.h>
-#else
-#include <ext/standard/php_smart_str.h>
-#endif
 #include "src/Bigint.h"
 #include "src/Smallint.h"
 #include "src/Tinyint.h"
@@ -679,13 +675,8 @@ php_driver_type_map(zval *key_type,
     cass_data_type_add_sub_type(map->data_type, sub_type->data_type);
   }
 
-#if PHP_MAJOR_VERSION >= 7
   map->data.map.key_type = *key_type;
   map->data.map.value_type = *value_type;
-#else
-  map->data.map.key_type = key_type;
-  map->data.map.value_type = value_type;
-#endif
 
   return ztype;
 }
@@ -728,11 +719,7 @@ php_driver_type_set(zval *value_type)
     cass_data_type_add_sub_type(set->data_type, sub_type->data_type);
   }
 
-#if PHP_MAJOR_VERSION >= 7
   set->data.set.value_type = *value_type;
-#else
-  set->data.set.value_type = value_type;
-#endif
 
   return ztype;
 }
@@ -771,11 +758,7 @@ php_driver_type_collection(zval *value_type)
     cass_data_type_add_sub_type(collection->data_type, sub_type->data_type);
   }
 
-#if PHP_MAJOR_VERSION >= 7
   collection->data.collection.value_type = *value_type;
-#else
-  collection->data.collection.value_type = value_type;
-#endif
 
   return ztype;
 }
