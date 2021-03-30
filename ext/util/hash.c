@@ -32,7 +32,7 @@ double_hash(cass_double_t value) {
 }
 
 unsigned
-php_driver_value_hash(zval* zvalue TSRMLS_DC) {
+php_driver_value_hash(zval* zvalue) {
   switch (Z_TYPE_P(zvalue)) {
   case IS_LONG:
 #if SIZEOF_LONG == 4
@@ -57,10 +57,10 @@ php_driver_value_hash(zval* zvalue TSRMLS_DC) {
 
 #if PHP_MAJOR_VERSION >= 7
   case IS_OBJECT:
-    return ((php_driver_value_handlers *)Z_OBJ_P(zvalue)->handlers)->hash_value(zvalue TSRMLS_CC);
+    return ((php_driver_value_handlers *)Z_OBJ_P(zvalue)->handlers)->hash_value(zvalue);
 #else
   case IS_OBJECT:
-    return ((php_driver_value_handlers *)Z_OBJVAL_P(zvalue).handlers)->hash_value(zvalue TSRMLS_CC);
+    return ((php_driver_value_handlers *)Z_OBJVAL_P(zvalue).handlers)->hash_value(zvalue);
 #endif
 
   default:
@@ -82,7 +82,7 @@ double_compare(cass_double_t d1, cass_double_t d2) {
 }
 
 int
-php_driver_value_compare(zval* zvalue1, zval* zvalue2 TSRMLS_DC) {
+php_driver_value_compare(zval* zvalue1, zval* zvalue2) {
   if (zvalue1 == zvalue2) return 0;
 
   if (Z_TYPE_P(zvalue1) != Z_TYPE_P(zvalue2)) {
@@ -115,10 +115,10 @@ php_driver_value_compare(zval* zvalue1, zval* zvalue2 TSRMLS_DC) {
 
 #if PHP_MAJOR_VERSION >= 7
   case IS_OBJECT:
-    return Z_OBJ_P(zvalue1)->handlers->compare_objects(zvalue1, zvalue2 TSRMLS_CC);
+    return Z_OBJ_P(zvalue1)->handlers->compare_objects(zvalue1, zvalue2);
 #else
   case IS_OBJECT:
-    return Z_OBJVAL_P(zvalue1).handlers->compare_objects(zvalue1, zvalue2 TSRMLS_CC);
+    return Z_OBJVAL_P(zvalue1).handlers->compare_objects(zvalue1, zvalue2);
 #endif
 
   default:
@@ -128,7 +128,7 @@ php_driver_value_compare(zval* zvalue1, zval* zvalue2 TSRMLS_DC) {
   return 1;
 }
 
-int php_driver_data_compare(const void* a, const void* b TSRMLS_DC) {
+int php_driver_data_compare(const void* a, const void* b) {
   Bucket *f, *s;
   zval *first, *second;
 
@@ -144,7 +144,7 @@ int php_driver_data_compare(const void* a, const void* b TSRMLS_DC) {
   second = *((zval **) s->pData);
 #endif
 
-  return php_driver_value_compare(first, second TSRMLS_CC);
+  return php_driver_value_compare(first, second);
 }
 
 unsigned

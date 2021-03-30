@@ -28,7 +28,7 @@ PHP_METHOD(DefaultSchema, keyspace)
   php_driver_keyspace *keyspace;
   const CassKeyspaceMeta *meta;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &name, &name_len) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &name, &name_len) == FAILURE) {
     return;
   }
 
@@ -113,15 +113,15 @@ static zend_function_entry php_driver_default_schema_methods[] = {
 static zend_object_handlers php_driver_default_schema_handlers;
 
 static HashTable *
-php_driver_default_schema_properties(zval *object TSRMLS_DC)
+php_driver_default_schema_properties(zval *object)
 {
-  HashTable *props = zend_std_get_properties(object TSRMLS_CC);
+  HashTable *props = zend_std_get_properties(object);
 
   return props;
 }
 
 static int
-php_driver_default_schema_compare(zval *obj1, zval *obj2 TSRMLS_DC)
+php_driver_default_schema_compare(zval *obj1, zval *obj2)
 {
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return 1; /* different classes */
@@ -130,7 +130,7 @@ php_driver_default_schema_compare(zval *obj1, zval *obj2 TSRMLS_DC)
 }
 
 static void
-php_driver_default_schema_free(php5to7_zend_object_free *object TSRMLS_DC)
+php_driver_default_schema_free(php5to7_zend_object_free *object)
 {
   php_driver_schema *self = PHP5TO7_ZEND_OBJECT_GET(schema, object);
 
@@ -139,12 +139,12 @@ php_driver_default_schema_free(php5to7_zend_object_free *object TSRMLS_DC)
     self->schema = NULL;
   }
 
-  zend_object_std_dtor(&self->zval TSRMLS_CC);
+  zend_object_std_dtor(&self->zval);
   PHP5TO7_MAYBE_EFREE(self);
 }
 
 static php5to7_zend_object
-php_driver_default_schema_new(zend_class_entry *ce TSRMLS_DC)
+php_driver_default_schema_new(zend_class_entry *ce)
 {
   php_driver_schema *self =
       PHP5TO7_ZEND_OBJECT_ECALLOC(schema, ce);
@@ -154,13 +154,13 @@ php_driver_default_schema_new(zend_class_entry *ce TSRMLS_DC)
   PHP5TO7_ZEND_OBJECT_INIT_EX(schema, default_schema, self, ce);
 }
 
-void php_driver_define_DefaultSchema(TSRMLS_D)
+void php_driver_define_DefaultSchema()
 {
   zend_class_entry ce;
 
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\DefaultSchema", php_driver_default_schema_methods);
-  php_driver_default_schema_ce = zend_register_internal_class(&ce TSRMLS_CC);
-  zend_class_implements(php_driver_default_schema_ce TSRMLS_CC, 1, php_driver_schema_ce);
+  php_driver_default_schema_ce = zend_register_internal_class(&ce);
+  zend_class_implements(php_driver_default_schema_ce, 1, php_driver_schema_ce);
   php_driver_default_schema_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
   php_driver_default_schema_ce->create_object = php_driver_default_schema_new;
 

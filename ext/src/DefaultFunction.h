@@ -19,6 +19,6 @@
 
 php5to7_zval
 php_driver_create_function(php_driver_ref* schema,
-                              const CassFunctionMeta *meta TSRMLS_DC);
+                              const CassFunctionMeta *meta);
 
 #endif /* PHP_DRIVER_DEFAULT_FUNCTION_H */

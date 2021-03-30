@@ -130,7 +130,7 @@ PHP_METHOD(ClusterBuilder, build)
   rc = cass_cluster_set_use_hostname_resolution(cluster->cluster, self->enable_hostname_resolution);
   if (rc == CASS_ERROR_LIB_NOT_IMPLEMENTED) {
     if (self->enable_hostname_resolution) {
-      php_error_docref(NULL TSRMLS_CC, E_WARNING,
+      php_error_docref(NULL, E_WARNING,
                         "The underlying C/C++ driver does not implement hostname resolution it will be disabled");
     }
   } else {
@@ -178,13 +178,13 @@ PHP_METHOD(ClusterBuilder, withDefaultConsistency)
   zval *consistency = NULL;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &consistency) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &consistency) == FAILURE) {
     return;
   }
 
   self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
 
-  if (php_driver_get_consistency(consistency, &self->default_consistency TSRMLS_CC) == FAILURE) {
+  if (php_driver_get_consistency(consistency, &self->default_consistency) == FAILURE) {
     return;
   }
 
@@ -196,7 +196,7 @@ PHP_METHOD(ClusterBuilder, withDefaultPageSize)
   zval *pageSize = NULL;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &pageSize) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &pageSize) == FAILURE) {
     return;
   }
 
@@ -219,7 +219,7 @@ PHP_METHOD(ClusterBuilder, withDefaultTimeout)
   zval *timeout = NULL;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &timeout) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &timeout) == FAILURE) {
     return;
   }
 
@@ -247,7 +247,7 @@ PHP_METHOD(ClusterBuilder, withContactPoints)
   smart_str contactPoints = PHP5TO7_SMART_STR_INIT;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "+", &args, &argc) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "+", &args, &argc) == FAILURE) {
     return;
   }
 
@@ -258,7 +258,7 @@ PHP_METHOD(ClusterBuilder, withContactPoints)
 
     if (Z_TYPE_P(host) != IS_STRING) {
       smart_str_free(&contactPoints);
-      throw_invalid_argument(host, "host", "a string ip address or hostname" TSRMLS_CC);
+      throw_invalid_argument(host, "host", "a string ip address or hostname");
       PHP5TO7_MAYBE_EFREE(args);
       return;
     }
@@ -289,7 +289,7 @@ PHP_METHOD(ClusterBuilder, withPort)
   zval *port = NULL;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &port) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &port) == FAILURE) {
     return;
   }
 
@@ -334,7 +334,7 @@ PHP_METHOD(ClusterBuilder, withDatacenterAwareRoundRobinLoadBalancingPolicy)
   zend_bool allow_remote_dcs_for_local_cl;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "szb", &local_dc, &local_dc_len, &hostPerRemoteDatacenter, &allow_remote_dcs_for_local_cl) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "szb", &local_dc, &local_dc_len, &hostPerRemoteDatacenter, &allow_remote_dcs_for_local_cl) == FAILURE) {
     return;
   }
 
@@ -367,7 +367,7 @@ PHP_METHOD(ClusterBuilder, withBlackListHosts)
   smart_str blacklist_hosts = PHP5TO7_SMART_STR_INIT;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "+", &args, &argc) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "+", &args, &argc) == FAILURE) {
     return;
   }
 
@@ -378,7 +378,7 @@ PHP_METHOD(ClusterBuilder, withBlackListHosts)
 
     if (Z_TYPE_P(hosts) != IS_STRING) {
       smart_str_free(&blacklist_hosts);
-      throw_invalid_argument(hosts, "hosts", "a string ip address or hostname" TSRMLS_CC);
+      throw_invalid_argument(hosts, "hosts", "a string ip address or hostname");
       PHP5TO7_MAYBE_EFREE(args);
       return;
     }
@@ -412,7 +412,7 @@ PHP_METHOD(ClusterBuilder, withWhiteListHosts)
   smart_str whitelist_hosts = PHP5TO7_SMART_STR_INIT;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "+", &args, &argc) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "+", &args, &argc) == FAILURE) {
     return;
   }
 
@@ -423,7 +423,7 @@ PHP_METHOD(ClusterBuilder, withWhiteListHosts)
 
     if (Z_TYPE_P(hosts) != IS_STRING) {
       smart_str_free(&whitelist_hosts);
-      throw_invalid_argument(hosts, "hosts", "a string ip address or hostname" TSRMLS_CC);
+      throw_invalid_argument(hosts, "hosts", "a string ip address or hostname");
       PHP5TO7_MAYBE_EFREE(args);
       return;
     }
@@ -457,7 +457,7 @@ PHP_METHOD(ClusterBuilder, withBlackListDCs)
   smart_str blacklist_dcs = PHP5TO7_SMART_STR_INIT;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "+", &args, &argc) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "+", &args, &argc) == FAILURE) {
     return;
   }
 
@@ -468,7 +468,7 @@ PHP_METHOD(ClusterBuilder, withBlackListDCs)
 
     if (Z_TYPE_P(dcs) != IS_STRING) {
       smart_str_free(&blacklist_dcs);
-      throw_invalid_argument(dcs, "dcs", "a string" TSRMLS_CC);
+      throw_invalid_argument(dcs, "dcs", "a string");
       PHP5TO7_MAYBE_EFREE(args);
       return;
     }
@@ -502,7 +502,7 @@ PHP_METHOD(ClusterBuilder, withWhiteListDCs)
   smart_str whitelist_dcs = PHP5TO7_SMART_STR_INIT;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "+", &args, &argc) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "+", &args, &argc) == FAILURE) {
     return;
   }
 
@@ -513,7 +513,7 @@ PHP_METHOD(ClusterBuilder, withWhiteListDCs)
 
     if (Z_TYPE_P(dcs) != IS_STRING) {
       smart_str_free(&whitelist_dcs);
-      throw_invalid_argument(dcs, "dcs", "a string" TSRMLS_CC);
+      throw_invalid_argument(dcs, "dcs", "a string");
       PHP5TO7_MAYBE_EFREE(args);
       return;
     }
@@ -544,7 +544,7 @@ PHP_METHOD(ClusterBuilder, withTokenAwareRouting)
   zend_bool enabled = 1;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|b", &enabled) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "|b", &enabled) == FAILURE) {
     return;
   }
 
@@ -561,7 +561,7 @@ PHP_METHOD(ClusterBuilder, withCredentials)
   zval *password = NULL;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zz", &username, &password) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "zz", &username, &password) == FAILURE) {
     return;
   }
 
@@ -591,7 +591,7 @@ PHP_METHOD(ClusterBuilder, withConnectTimeout)
   zval *timeout = NULL;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &timeout) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &timeout) == FAILURE) {
     return;
   }
 
@@ -615,7 +615,7 @@ PHP_METHOD(ClusterBuilder, withRequestTimeout)
   double timeout;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "d", &timeout) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "d", &timeout) == FAILURE) {
     return;
   }
 
@@ -631,7 +631,7 @@ PHP_METHOD(ClusterBuilder, withSSL)
   zval *ssl_options = NULL;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O", &ssl_options, php_driver_ssl_ce) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "O", &ssl_options, php_driver_ssl_ce) == FAILURE) {
     return;
   }
 
@@ -650,7 +650,7 @@ PHP_METHOD(ClusterBuilder, withPersistentSessions)
   zend_bool enabled = 1;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|b", &enabled) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "|b", &enabled) == FAILURE) {
     return;
   }
 
@@ -666,7 +666,7 @@ PHP_METHOD(ClusterBuilder, withProtocolVersion)
   zval *version = NULL;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &version) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &version) == FAILURE) {
     return;
   }
 
@@ -687,7 +687,7 @@ PHP_METHOD(ClusterBuilder, withIOThreads)
   zval *count = NULL;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &count) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &count) == FAILURE) {
     return;
   }
 
@@ -710,7 +710,7 @@ PHP_METHOD(ClusterBuilder, withConnectionsPerHost)
   zval *max = NULL;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z|z", &core, &max) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|z", &core, &max) == FAILURE) {
     return;
   }
 
@@ -746,7 +746,7 @@ PHP_METHOD(ClusterBuilder, withReconnectInterval)
   zval *interval = NULL;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &interval) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &interval) == FAILURE) {
     return;
   }
 
@@ -770,7 +770,7 @@ PHP_METHOD(ClusterBuilder, withLatencyAwareRouting)
   zend_bool enabled = 1;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|b", &enabled) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "|b", &enabled) == FAILURE) {
     return;
   }
 
@@ -786,7 +786,7 @@ PHP_METHOD(ClusterBuilder, withTCPNodelay)
   zend_bool enabled = 1;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|b", &enabled) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "|b", &enabled) == FAILURE) {
     return;
   }
 
@@ -802,7 +802,7 @@ PHP_METHOD(ClusterBuilder, withTCPKeepalive)
   zval *delay = NULL;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &delay) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &delay) == FAILURE) {
     return;
   }
 
@@ -831,7 +831,7 @@ PHP_METHOD(ClusterBuilder, withRetryPolicy)
   zval *retry_policy = NULL;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O",
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "O",
                             &retry_policy, php_driver_retry_policy_ce) == FAILURE) {
     return;
   }
@@ -851,7 +851,7 @@ PHP_METHOD(ClusterBuilder, withTimestampGenerator)
   zval *timestamp_gen = NULL;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O",
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "O",
                             &timestamp_gen, php_driver_timestamp_gen_ce) == FAILURE) {
     return;
   }
@@ -871,7 +871,7 @@ PHP_METHOD(ClusterBuilder, withSchemaMetadata)
   zend_bool enabled = 1;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|b", &enabled) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "|b", &enabled) == FAILURE) {
     return;
   }
 
@@ -887,7 +887,7 @@ PHP_METHOD(ClusterBuilder, withHostnameResolution)
   zend_bool enabled = 1;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|b", &enabled) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "|b", &enabled) == FAILURE) {
     return;
   }
 
@@ -903,7 +903,7 @@ PHP_METHOD(ClusterBuilder, withRandomizedContactPoints)
   zend_bool enabled = 1;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|b", &enabled) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "|b", &enabled) == FAILURE) {
     return;
   }
 
@@ -919,7 +919,7 @@ PHP_METHOD(ClusterBuilder, withConnectionHeartbeatInterval)
   zval *interval = NULL;
   php_driver_cluster_builder *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &interval) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &interval) == FAILURE) {
     return;
   }
 
@@ -1063,15 +1063,15 @@ static zend_function_entry php_driver_cluster_builder_methods[] = {
 static zend_object_handlers php_driver_cluster_builder_handlers;
 
 static HashTable*
-php_driver_cluster_builder_gc(zval *object, php5to7_zval_gc table, int *n TSRMLS_DC)
+php_driver_cluster_builder_gc(zval *object, php5to7_zval_gc table, int *n)
 {
   *table = NULL;
   *n = 0;
-  return zend_std_get_properties(object TSRMLS_CC);
+  return zend_std_get_properties(object);
 }
 
 static HashTable*
-php_driver_cluster_builder_properties(zval *object TSRMLS_DC)
+php_driver_cluster_builder_properties(zval *object)
 {
   php5to7_zval contactPoints;
   php5to7_zval loadBalancingPolicy;
@@ -1108,7 +1108,7 @@ php_driver_cluster_builder_properties(zval *object TSRMLS_DC)
   php5to7_zval connectionHeartbeatInterval;
 
   php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(object);
-  HashTable *props = zend_std_get_properties(object TSRMLS_CC);
+  HashTable *props = zend_std_get_properties(object);
 
   PHP5TO7_ZVAL_MAYBE_MAKE(contactPoints);
   PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(contactPoints), self->contact_points);
@@ -1321,7 +1321,7 @@ php_driver_cluster_builder_properties(zval *object TSRMLS_DC)
 }
 
 static int
-php_driver_cluster_builder_compare(zval *obj1, zval *obj2 TSRMLS_DC)
+php_driver_cluster_builder_compare(zval *obj1, zval *obj2)
 {
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return 1; /* different classes */
@@ -1330,7 +1330,7 @@ php_driver_cluster_builder_compare(zval *obj1, zval *obj2 TSRMLS_DC)
 }
 
 static void
-php_driver_cluster_builder_free(php5to7_zend_object_free *object TSRMLS_DC)
+php_driver_cluster_builder_free(php5to7_zend_object_free *object)
 {
   php_driver_cluster_builder *self =
       PHP5TO7_ZEND_OBJECT_GET(cluster_builder, object);
@@ -1378,12 +1378,12 @@ php_driver_cluster_builder_free(php5to7_zend_object_free *object TSRMLS_DC)
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->retry_policy);
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->timestamp_gen);
 
-  zend_object_std_dtor(&self->zval TSRMLS_CC);
+  zend_object_std_dtor(&self->zval);
   PHP5TO7_MAYBE_EFREE(self);
 }
 
 static php5to7_zend_object
-php_driver_cluster_builder_new(zend_class_entry *ce TSRMLS_DC)
+php_driver_cluster_builder_new(zend_class_entry *ce)
 {
   php_driver_cluster_builder *self =
       PHP5TO7_ZEND_OBJECT_ECALLOC(cluster_builder, ce);
@@ -1428,12 +1428,12 @@ php_driver_cluster_builder_new(zend_class_entry *ce TSRMLS_DC)
   PHP5TO7_ZEND_OBJECT_INIT(cluster_builder, self, ce);
 }
 
-void php_driver_define_ClusterBuilder(TSRMLS_D)
+void php_driver_define_ClusterBuilder()
 {
   zend_class_entry ce;
 
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Cluster\\Builder", php_driver_cluster_builder_methods);
-  php_driver_cluster_builder_ce = zend_register_internal_class(&ce TSRMLS_CC);
+  php_driver_cluster_builder_ce = zend_register_internal_class(&ce);
   php_driver_cluster_builder_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
   php_driver_cluster_builder_ce->create_object = php_driver_cluster_builder_new;
 

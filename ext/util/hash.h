@@ -21,10 +21,10 @@
 #define uthash_free(ptr,sz) efree(ptr)
 
 #define HASH_FUNCTION(key,keylen,num_bkts,hashv,bkt)                \
-  hashv = php_driver_value_hash((zval*)key TSRMLS_CC); \
+  hashv = php_driver_value_hash((zval*)key); \
   bkt = (hashv) & (num_bkts - 1U)
 #define HASH_KEYCOMPARE(a, b, len) \
-  php_driver_value_compare((zval*)a, (zval*)b TSRMLS_CC)
+  php_driver_value_compare((zval*)a, (zval*)b)
 
 #undef HASH_ADD /* Previously defined in Zend/zend_hash.h */
 
@@ -49,9 +49,9 @@ struct php_driver_set_entry_ {
 
 #define PHP_DRIVER_COMPARE(a, b) ((a) < (b) ? -1 : (a) > (b))
 
-unsigned php_driver_value_hash(zval* zvalue TSRMLS_DC);
-int php_driver_value_compare(zval* zvalue1, zval* zvalue2 TSRMLS_DC);
-int php_driver_data_compare(const void* a, const void* b TSRMLS_DC);
+unsigned php_driver_value_hash(zval* zvalue);
+int php_driver_value_compare(zval* zvalue1, zval* zvalue2);
+int php_driver_data_compare(const void* a, const void* b);
 
 unsigned php_driver_mpz_hash(unsigned seed, mpz_t n);
 

@@ -21,6 +21,6 @@
 
 php5to7_zval
 php_driver_create_index(php_driver_ref* schema,
-                           const CassIndexMeta *meta TSRMLS_DC);
+                           const CassIndexMeta *meta);
 
 #endif /* PHP_DRIVER_DEFAULT_INDEX_H */

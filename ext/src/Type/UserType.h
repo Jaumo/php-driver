@@ -19,7 +19,7 @@
 
 int php_driver_type_user_type_add(php_driver_type *type,
                                      const char *name, size_t name_length,
-                                     zval *zsub_type TSRMLS_DC);
+                                     zval *zsub_type);
 
 #endif /* PHP_DRIVER_TYPE_USER_TYPE_H */
 

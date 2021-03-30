@@ -31,15 +31,15 @@ PHP_METHOD(FuturePreparedStatement, get)
     RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->prepared_statement), 1, 0);
   }
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|z", &timeout) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "|z", &timeout) == FAILURE) {
     return;
   }
 
-  if (php_driver_future_wait_timed(self->future, timeout TSRMLS_CC) == FAILURE) {
+  if (php_driver_future_wait_timed(self->future, timeout) == FAILURE) {
     return;
   }
 
-  if (php_driver_future_is_error(self->future TSRMLS_CC) == FAILURE) {
+  if (php_driver_future_is_error(self->future) == FAILURE) {
     return;
   }
 
@@ -63,15 +63,15 @@ static zend_function_entry php_driver_future_prepared_statement_methods[] = {
 static zend_object_handlers php_driver_future_prepared_statement_handlers;
 
 static HashTable *
-php_driver_future_prepared_statement_properties(zval *object TSRMLS_DC)
+php_driver_future_prepared_statement_properties(zval *object)
 {
-  HashTable *props = zend_std_get_properties(object TSRMLS_CC);
+  HashTable *props = zend_std_get_properties(object);
 
   return props;
 }
 
 static int
-php_driver_future_prepared_statement_compare(zval *obj1, zval *obj2 TSRMLS_DC)
+php_driver_future_prepared_statement_compare(zval *obj1, zval *obj2)
 {
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return 1; /* different classes */
@@ -80,7 +80,7 @@ php_driver_future_prepared_statement_compare(zval *obj1, zval *obj2 TSRMLS_DC)
 }
 
 static void
-php_driver_future_prepared_statement_free(php5to7_zend_object_free *object TSRMLS_DC)
+php_driver_future_prepared_statement_free(php5to7_zend_object_free *object)
 {
   php_driver_future_prepared_statement *self =
       PHP5TO7_ZEND_OBJECT_GET(future_prepared_statement, object);
@@ -92,12 +92,12 @@ php_driver_future_prepared_statement_free(php5to7_zend_object_free *object TSRML
 
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->prepared_statement);
 
-  zend_object_std_dtor(&self->zval TSRMLS_CC);
+  zend_object_std_dtor(&self->zval);
   PHP5TO7_MAYBE_EFREE(self);
 }
 
 static php5to7_zend_object
-php_driver_future_prepared_statement_new(zend_class_entry *ce TSRMLS_DC)
+php_driver_future_prepared_statement_new(zend_class_entry *ce)
 {
   php_driver_future_prepared_statement *self =
       PHP5TO7_ZEND_OBJECT_ECALLOC(future_prepared_statement, ce);
@@ -108,13 +108,13 @@ php_driver_future_prepared_statement_new(zend_class_entry *ce TSRMLS_DC)
   PHP5TO7_ZEND_OBJECT_INIT(future_prepared_statement, self, ce);
 }
 
-void php_driver_define_FuturePreparedStatement(TSRMLS_D)
+void php_driver_define_FuturePreparedStatement()
 {
   zend_class_entry ce;
 
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\FuturePreparedStatement", php_driver_future_prepared_statement_methods);
-  php_driver_future_prepared_statement_ce = zend_register_internal_class(&ce TSRMLS_CC);
-  zend_class_implements(php_driver_future_prepared_statement_ce TSRMLS_CC, 1, php_driver_future_ce);
+  php_driver_future_prepared_statement_ce = zend_register_internal_class(&ce);
+  zend_class_implements(php_driver_future_prepared_statement_ce, 1, php_driver_future_ce);
   php_driver_future_prepared_statement_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
   php_driver_future_prepared_statement_ce->create_object = php_driver_future_prepared_statement_new;
 

@@ -17,6 +17,6 @@
 #ifndef PHP_DRIVER_COLLECTION_H
 #define PHP_DRIVER_COLLECTION_H
 
-void php_driver_collection_add(php_driver_collection* collection, zval* object TSRMLS_DC);
+void php_driver_collection_add(php_driver_collection* collection, zval* object);
 
 #endif /* PHP_DRIVER_COLLECTION_H */

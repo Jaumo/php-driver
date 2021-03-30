@@ -21,6 +21,6 @@
 
 php5to7_zval
 php_driver_create_table(php_driver_ref* schema,
-                           const CassTableMeta *meta TSRMLS_DC);
+                           const CassTableMeta *meta);
 
 #endif /* PHP_DRIVER_DEFAULT_TABLE_H */
