@@ -1,5 +1,5 @@
 # Directories to ignore
-/.idea/
+.idea/
 /.vagrant/
 /bin/
 /build/
@@ -11,5 +11,7 @@
 # Files to ignore
 /cassandra.log
 /composer.phar
-/composer.lock
 /tmp/*
+/.phpunit.result.cache
+configure.ac
+tmp-php.ini
