@@ -23,7 +23,7 @@ use Cassandra\Type;
 /**
  * @requires extension cassandra
  */
-class CollectionTest extends \PHPUnit_Framework_TestCase
+class CollectionTest extends \PHPUnit\Framework\TestCase
 {
     public function testDefinesCollectionType()
     {
@@ -51,22 +51,17 @@ class CollectionTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(0, count($list));
     }
 
-    /**
-     * @expectedException        InvalidArgumentException
-     * @expectedExceptionMessage argument must be a string, 1 given
-     */
     public function testPreventsCreatingCollectionWithUnsupportedTypes()
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('argument must be a string, 1 given');
         Type::collection(Type::varchar())->create(1);
     }
 
-    /**
-     * @expectedException        InvalidArgumentException
-     * @expectedExceptionMessage type must be a valid Cassandra\Type,
-     *                           an instance of Cassandra\Type\UnsupportedType given
-     */
     public function testPreventsDefiningCollectionsWithUnsupportedTypes()
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('type must be a valid Cassandra\Type, an instance of Cassandra\Type\UnsupportedType given');
         Type::collection(new UnsupportedType());
     }
 

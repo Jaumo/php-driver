@@ -23,7 +23,7 @@ use Cassandra\Type;
 /**
  * @requires extension cassandra
  */
-class SetTest extends \PHPUnit_Framework_TestCase
+class SetTest extends \PHPUnit\Framework\TestCase
 {
     public function testDefinesSetType()
     {
@@ -46,22 +46,17 @@ class SetTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(0, count($set));
     }
 
-    /**
-     * @expectedException        InvalidArgumentException
-     * @expectedExceptionMessage argument must be a string, 1 given
-     */
     public function testPreventsCreatingSetWithUnsupportedTypes()
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('argument must be a string, 1 given');
         Type::set(Type::varchar())->create(1);
     }
 
-    /**
-     * @expectedException        InvalidArgumentException
-     * @expectedExceptionMessage type must be a valid Cassandra\Type,
-     *                           an instance of Cassandra\Type\UnsupportedType given
-     */
     public function testPreventsDefiningSetsWithUnsupportedTypes()
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('type must be a valid Cassandra\Type, an instance of Cassandra\Type\UnsupportedType given');
         Type::set(new UnsupportedType());
     }
 

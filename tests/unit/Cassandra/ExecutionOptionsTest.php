@@ -21,14 +21,14 @@ namespace Cassandra;
 /**
  * @requires extension cassandra
  */
-class ExecutionOptionsTest extends \PHPUnit_Framework_TestCase
+class ExecutionOptionsTest extends \PHPUnit\Framework\TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         error_reporting(E_ALL ^ E_DEPRECATED);
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         error_reporting(E_ALL);
     }

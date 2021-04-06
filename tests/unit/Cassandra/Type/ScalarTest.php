@@ -23,7 +23,7 @@ use Cassandra\Type;
 /**
  * @requires extension cassandra
  */
-class ScalarTest extends \PHPUnit_Framework_TestCase
+class ScalarTest extends \PHPUnit\Framework\TestCase
 {
     public function testAllowCreatingTypes()
     {

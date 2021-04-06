@@ -41,7 +41,7 @@ class MapIntegrationTest extends CollectionsIntegrationTest
         // Ensure duration data type is not used as a key for set
         $scalarCassandraTypes = array_filter($this->scalarCassandraTypes(),
             function($cassandraType) {
-                if ($cassandraType[0] != "duration") {
+                if ($cassandraType[0] != Type::duration()) {
                     return $cassandraType;
                 }
             }

@@ -47,7 +47,7 @@ class TimestampIntegrationTest extends BasicIntegrationTest {
      * Create the table and client side timestamp session for the timestamp
      * tests.
      */
-    public function setUp() {
+    public function setUp(): void {
         // Process parent setup steps
         parent::setUp();
 

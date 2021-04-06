@@ -23,7 +23,7 @@ namespace Cassandra;
  * functionality when a simple setup and teardown is required. This class
  * should be used for the majority of tests.
  */
-abstract class BasicIntegrationTest extends \PHPUnit_Framework_TestCase {
+abstract class BasicIntegrationTest extends \PHPUnit\Framework\TestCase {
     /**
      * Conversion value for seconds to milliseconds.
      */
@@ -115,7 +115,7 @@ abstract class BasicIntegrationTest extends \PHPUnit_Framework_TestCase {
     /**
      * Setup the database for the integration tests.
      */
-    protected function setUp() {
+    protected function setUp(): void {
         // Initialize the database and establish a connection
         $this->integration = new Integration(get_class(), $this->getName(false),
             $this->numberDC1Nodes, $this->numberDC2Nodes,
@@ -134,7 +134,7 @@ abstract class BasicIntegrationTest extends \PHPUnit_Framework_TestCase {
     /**
      * Teardown the database for the integration tests.
      */
-    protected function tearDown() {
+    protected function tearDown(): void {
         unset($this->integration);
         unset($this->ccm);
         unset($this->session);

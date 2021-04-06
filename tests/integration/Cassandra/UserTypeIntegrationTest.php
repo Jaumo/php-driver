@@ -18,6 +18,8 @@
 
 namespace Cassandra;
 
+use Cassandra\Exception\InvalidQueryException;
+
 /**
  * User type integration tests.
  *
@@ -52,7 +54,7 @@ class UserTypeIntegrationTest extends CollectionsIntegrationTest {
     /**
      * Setup the database for the user type tests.
      */
-    protected function setUp() {
+    protected function setUp(): void {
         // Process parent setup steps
         parent::setUp();
 
@@ -455,11 +457,11 @@ class UserTypeIntegrationTest extends CollectionsIntegrationTest {
      *
      * @test
      * @ticket PHP-57
-     * @expectedException \Cassandra\Exception\InvalidQueryException
-     * @expectedExceptionMessageRegExp /Non-frozen User-Defined types are not supported, please use frozen<>|A user type cannot contain non-frozen UDTs/
      * @cassandra-version-less-3
      */
     public function testFrozenRequired() {
+        $this->expectException(InvalidQueryException::class);
+        $this->expectErrorMessageMatches('/Non-frozen User-Defined types are not supported, please use frozen<>|A user type cannot contain non-frozen UDTs/');
         $this->session->execute("CREATE TYPE frozen_required (id uuid, address address)");
     }
 
@@ -471,10 +473,10 @@ class UserTypeIntegrationTest extends CollectionsIntegrationTest {
      *
      * @test
      * @ticket PHP-57
-     * @expectedException \Cassandra\Exception\InvalidQueryException
-     * @expectedExceptionMessageRegExp |Unknown type .*.user_type_unavailable|
      */
     public function testUnavailableUserType() {
+        $this->expectException(InvalidQueryException::class);
+        $this->expectErrorMessageMatches('|Unknown type .*.user_type_unavailable|');
         $this->session->execute(
             "CREATE TABLE unavailable " .
             "(id uuid PRIMARY KEY, unavailable frozen<user_type_unavailable>)"
@@ -489,10 +491,10 @@ class UserTypeIntegrationTest extends CollectionsIntegrationTest {
      *
      * @test
      * @ticket PHP-57
-     * @expectedException \Cassandra\Exception\InvalidQueryException
      * @cassandra-version-less-3.6
      */
     public function testInvalidAddressUserTypeAssignedValue() {
+        $this->expectNotToPerformAssertions();
         $invalidValue = $this->getPhoneUserType();
         $invalidValue->set("alias", "Invalid Value");
         $invalidValue->set("number", "800-555-1212");
@@ -507,9 +509,9 @@ class UserTypeIntegrationTest extends CollectionsIntegrationTest {
      *
      * @test
      * @ticket PHP-57
-     * @expectedException \Cassandra\Exception\InvalidQueryException
      */
     public function testInvalidPhoneUserTypeAssignedValue() {
+        $this->expectException(InvalidQueryException::class);
         // Create a new table
         $this->session->execute("CREATE TABLE invalidphone (key int PRIMARY KEY, value frozen<phone>)");
         $invalidValue = $this->generateAddressValue();

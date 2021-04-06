@@ -21,7 +21,7 @@ namespace Cassandra;
 /**
  * @requires extension cassandra
  */
-class UuidTest extends \PHPUnit_Framework_TestCase
+class UuidTest extends \PHPUnit\Framework\TestCase
 {
     public function testGeneratesUniqueUuids()
     {

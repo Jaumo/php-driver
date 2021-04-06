@@ -21,7 +21,7 @@ namespace Cassandra;
 /**
  * @requires extension cassandra
  */
-class BlobTest extends \PHPUnit_Framework_TestCase
+class BlobTest extends \PHPUnit\Framework\TestCase
 {
     public function testHexEncodesString()
     {

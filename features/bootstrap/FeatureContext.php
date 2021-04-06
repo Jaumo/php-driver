@@ -20,6 +20,7 @@ use Behat\Behat\Context\Context;
 use Behat\Behat\Context\SnippetAcceptingContext;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
+use PHPUnit\Framework\Assert;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 
@@ -32,8 +33,9 @@ class FeatureContext implements Context, SnippetAcceptingContext
 {
     private $workingDir;
     private $phpBin;
-    private $phpBinOptions;
-    private $process;
+    private $phpBinOptions = [];
+    /** @var null|Process */
+    private $process = null;
     private $webServerProcess;
     private $webServerURL;
     private $lastResponse;
@@ -81,7 +83,6 @@ class FeatureContext implements Context, SnippetAcceptingContext
         }
         $this->workingDir               = $dir;
         $this->phpBin                   = $php;
-        $this->process                  = new Process(null);
         $this->webServerProcess         = null;
         $this->webServerURL             = '';
         $this->lastResponse             = '';
@@ -94,7 +95,7 @@ class FeatureContext implements Context, SnippetAcceptingContext
      */
     public function scenarioTeardown()
     {
-        $this->phpBinOptions            = '';
+        $this->phpBinOptions            = [];
         $this->webServerURL             = '';
         $this->lastResponse             = '';
 
@@ -315,10 +316,9 @@ class FeatureContext implements Context, SnippetAcceptingContext
 
     private function execute(array $env = array())
     {
-        $this->process->setWorkingDirectory($this->workingDir);
-        $this->process->setCommandLine(sprintf(
-            '%s %s %s', $this->phpBin, $this->phpBinOptions, 'example.php'
-        ));
+        $command = array_merge([$this->phpBin], $this->phpBinOptions, ['example.php']);
+        $this->process = new Process($command, $this->workingDir);
+
         if (!empty($env)) {
             $this->process->setEnv(array_replace((array) $this->process->getEnv(), $env));
         }
@@ -328,15 +328,9 @@ class FeatureContext implements Context, SnippetAcceptingContext
     private function startWebServer()
     {
         $this->webServerURL = 'http://127.0.0.1:10000';
-        $command = sprintf('exec %s -S "%s"', $this->phpBin, '127.0.0.1:10000');
-        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            $command = sprintf('%s -S "%s"', $this->phpBin, '127.0.0.1:10000');
-        }
-        if ($this->phpBinOptions) {
-            $command = sprintf("%s %s", $command, $this->phpBinOptions);
-        }
+        $command = array_merge([$this->phpBin, '-S', '127.0.0.1:10000'], $this->phpBinOptions);
+
         $this->webServerProcess = new Process($command, $this->workingDir);
-        $this->webServerProcess->setCommandLine($command);
         $this->webServerProcess->start();
         echo 'Web Server Started: ' . $this->webServerProcess->getPid() . "\n";
         sleep(5);
@@ -356,7 +350,7 @@ class FeatureContext implements Context, SnippetAcceptingContext
      */
     public function itsOutputShouldContain(PyStringNode $string)
     {
-        PHPUnit_Framework_Assert::assertContains((string) $string, $this->getOutput());
+        Assert::stringContains((string) $string, $this->getOutput());
     }
 
     /**
@@ -368,7 +362,7 @@ class FeatureContext implements Context, SnippetAcceptingContext
         sort($expected, SORT_STRING);
         $actual = explode("\n", $this->getOutput());
         sort($actual, SORT_STRING);
-        PHPUnit_Framework_Assert::assertContains(implode("\n", $expected), implode("\n", $actual));
+        Assert::stringContains(implode("\n", $expected), implode("\n", $actual));
     }
 
     /**
@@ -378,7 +372,7 @@ class FeatureContext implements Context, SnippetAcceptingContext
     {
         $lines = preg_split("/\\r\\n|\\r|\\n/", $string->getRaw());
         foreach($lines as $key=>$line) {
-            $this->phpBinOptions .= '-d '.$line.' ';
+            $this->phpBinOptions = array_merge($this->phpBinOptions, ['-d', $line]);
         }
     }
 
@@ -388,7 +382,7 @@ class FeatureContext implements Context, SnippetAcceptingContext
     public function aLogFileShouldExist($filename)
     {
         $absoluteFilename = $this->workingDir.DIRECTORY_SEPARATOR.((string) $filename);
-        PHPUnit_Framework_Assert::assertFileExists($absoluteFilename);
+        Assert::assertFileExists($absoluteFilename);
     }
 
     /**
@@ -397,8 +391,8 @@ class FeatureContext implements Context, SnippetAcceptingContext
     public function theLogFileShouldContain($filename, $contents)
     {
       $absoluteFilename = $this->workingDir.DIRECTORY_SEPARATOR.((string) $filename);
-      PHPUnit_Framework_Assert::assertFileExists($absoluteFilename);
-      PHPUnit_Framework_Assert::assertContains($contents, file_get_contents($absoluteFilename));
+      Assert::assertFileExists($absoluteFilename);
+      Assert::stringContains($contents, file_get_contents($absoluteFilename));
     }
 
     private function getOutput()

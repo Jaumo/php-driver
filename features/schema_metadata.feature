@@ -34,15 +34,12 @@ Feature: Schema Metadata
         set_value Set<float>
       ) WITH
           bloom_filter_fp_chance=0.5 AND
-          caching='ALL' AND
           comment='Schema Metadata Feature' AND
           compaction={'class': 'LeveledCompactionStrategy', 'sstable_size_in_mb' : 37} AND
           compression={'sstable_compression': 'DeflateCompressor'} AND
           dclocal_read_repair_chance=0.25 AND
           gc_grace_seconds=3600 AND
-          populate_io_cache_on_flush='true' AND
-          read_repair_chance=0.75 AND
-          replicate_on_write='false';
+          read_repair_chance=0.75;
       """
 
   Scenario: Getting keyspace metadata

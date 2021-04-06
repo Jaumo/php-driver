@@ -27,7 +27,6 @@ class CCM
     private $clusterPrefix;
     private $isSilent;
     private $version;
-    private $process;
     private $cluster;
     private $session;
     private $ssl;
@@ -40,16 +39,12 @@ class CCM
         $this->version            = $version;
         $this->isSilent           = $isSilent;
         $this->clusterPrefix      = $clusterPrefix;
-        $this->process            = new Process(null);
         $this->cluster            = null;
         $this->session            = null;
         $this->ssl                = false;
         $this->clientAuth         = false;
         $this->dataCenterOneNodes = 0;
         $this->dataCenterTwoNodes = 0;
-
-        // Increase the timeout to handle TravisCI timeouts
-        $this->process->setTimeout(self::PROCESS_TIMEOUT_IN_SECONDS);
     }
 
     public function setupSchema($schema, $dropExistingKeyspaces = true)
@@ -332,31 +327,30 @@ class CCM
 
     private function run()
     {
-        $args = func_get_args();
-        foreach ($args as $i => $arg) {
-            $args[$i] = escapeshellarg($arg);
+        // If the running user is root (most likely in a docker setup), sudo as Cassandra
+        // Cassandra does not like running as root
+        if (posix_getuid() == 0) {
+            $command = ['sudo', '-u', 'cassandra', 'ccm'];
+        } else {
+            $command = ['ccm'];
         }
 
-        $command = sprintf('ccm %s', implode(' ', $args));
-        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' || strtoupper(substr(PHP_OS, 0, 6)) === 'CYGWIN') {
-            $keepWindowsContext = '';
-            if ($args[0] != "\"start\"") {
-                $keepWindowsContext = '/B ';
-            }
-            $command = 'START "PHP Driver - CCM" ' . $keepWindowsContext . '/MIN /WAIT ' . $command;
-        }
-        $this->process->setCommandLine($command);
+        $command = array_merge($command, func_get_args());
+        $process = new Process($command);
+
+        // Increase the timeout to handle TravisCI timeouts
+        $process->setTimeout(self::PROCESS_TIMEOUT_IN_SECONDS);
 
         if (!$this->isSilent) {
-            echo 'ccm > ' . $command . "\n";
+            echo 'ccm > ' . implode(" ", $command) . "\n";
         }
-        $this->process->mustRun(function ($type, $buffer) {
+        $process->mustRun(function ($type, $buffer) {
             if (!$this->isSilent) {
                 echo 'ccm > ' . $buffer;
             }
         });
 
-        return $this->process->getOutput();
+        return $process->getOutput();
     }
 
     public function removeCluster($cluster)

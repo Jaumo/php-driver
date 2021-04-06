@@ -200,7 +200,10 @@ abstract class DatatypeIntegrationTests extends BasicIntegrationTest {
         $this->assertEquals($row['value'], $value);
         $this->assertTrue($row['value'] == $value);
         if (isset($row['value'])) {
-            $this->assertEquals(count($row['value']), count($value));
+            $expectedCount = is_countable($value) ? count($value) : 1;
+            $actualCount = is_countable($row['value']) ? count($row['value']) : 1;
+
+            $this->assertEquals($expectedCount, $actualCount);
             if (is_object($row['value'])) {
                 $this->assertEquals($row['value']->type(), $type);
             }

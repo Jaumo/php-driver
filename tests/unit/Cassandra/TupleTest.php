@@ -21,14 +21,12 @@ namespace Cassandra;
 /**
  * @requires extension cassandra
  */
-class TupleTest extends \PHPUnit_Framework_TestCase
+class TupleTest extends \PHPUnit\Framework\TestCase
 {
-    /**
-     * @expectedException         InvalidArgumentException
-     * @expectedExceptionMessage  Unsupported type 'custom type'
-     */
     public function testSupportsOnlyCassandraTypes()
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unsupported type \'custom type\'');
         new Tuple(array('custom type'));
     }
 
@@ -37,6 +35,7 @@ class TupleTest extends \PHPUnit_Framework_TestCase
      */
     public function testSupportsAllCassandraTypes($types)
     {
+        self::expectNotToPerformAssertions();
         new Tuple($types);
     }
 
@@ -132,12 +131,10 @@ class TupleTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    /**
-     * @expectedException         InvalidArgumentException
-     * @expectedExceptionMessage  argument must be an instance of Cassandra\Varint, an instance of Cassandra\Decimal given
-     */
     public function testValidatesTypesOfElements()
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('argument must be an instance of Cassandra\Varint, an instance of Cassandra\Decimal given');
         $tuple = new Tuple(array(\Cassandra::TYPE_VARINT));
         $tuple->set(0, new Decimal('123'));
     }
@@ -164,22 +161,18 @@ class TupleTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($tuple->get(3), "abc");
     }
 
-    /**
-     * @expectedException         InvalidArgumentException
-     * @expectedExceptionMessage  Index out of bounds
-     */
     public function testInvalidSetIndex()
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Index out of bounds');
         $tuple = new Tuple(array(\Cassandra::TYPE_TEXT));
         $tuple->set(1, "invalid index");
     }
 
-    /**
-     * @expectedException         InvalidArgumentException
-     * @expectedExceptionMessage  Index out of bounds
-     */
     public function testInvalidGetIndex()
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Index out of bounds');
         $tuple = new Tuple(array(\Cassandra::TYPE_TEXT));
         $tuple->set(0, "invalid index");
         $tuple->get(1);

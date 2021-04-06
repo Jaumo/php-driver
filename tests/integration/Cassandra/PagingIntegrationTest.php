@@ -18,8 +18,11 @@
 
 namespace Cassandra;
 
+use Cassandra\Exception\InvalidArgumentException;
+use Cassandra\Exception\ProtocolException;
+
 class PagingIntegrationTest extends BasicIntegrationTest {
-    public function setUp() {
+    public function setUp(): void {
         parent::setUp();
 
         $this->session->execute("CREATE TABLE {$this->tableNamePrefix} (key int PRIMARY KEY, value int)");
@@ -144,11 +147,10 @@ class PagingIntegrationTest extends BasicIntegrationTest {
      *
      * @test
      * @ticket PHP-46
-     *
-     * @expectedException Cassandra\Exception\ProtocolException
-     * @expectedExceptionMessage Invalid value for the paging state
      */
     public function testInvalidToken() {
+        $this->expectExceptionMessage(ProtocolException::class);
+        $this->expectExceptionMessage('Invalid value for the paging state');
         $this->session->execute(
             "SELECT * FROM {$this->tableNamePrefix}",
             array("paging_state_token" => "invalid")
@@ -163,11 +165,10 @@ class PagingIntegrationTest extends BasicIntegrationTest {
      *
      * @test
      * @ticket PHP-46
-     *
-     * @expectedException Cassandra\Exception\InvalidArgumentException
-     * @expectedExceptionMessageRegExp |paging_state_token must be a string.*|
      */
     public function testNullToken() {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/paging_state_token must be a string.*/');
         $this->session->execute(
             "SELECT * FROM {$this->tableNamePrefix}",
             array("paging_state_token" => null)
