@@ -469,7 +469,7 @@ void php_driver_define_Rows(TSRMLS_D)
 
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Rows", php_driver_rows_methods);
   php_driver_rows_ce = zend_register_internal_class(&ce TSRMLS_CC);
-  zend_class_implements(php_driver_rows_ce TSRMLS_CC, 2, zend_ce_iterator, zend_ce_arrayaccess);
+  zend_class_implements(php_driver_rows_ce TSRMLS_CC, 3, zend_ce_iterator, zend_ce_arrayaccess, zend_ce_countable);
   php_driver_rows_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
   php_driver_rows_ce->create_object = php_driver_rows_new;
 
