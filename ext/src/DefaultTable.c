@@ -105,8 +105,13 @@ php_driver_table_get_option(php_driver_table *table,
   if (!PHP5TO7_ZEND_HASH_FIND(PHP5TO7_Z_ARRVAL_MAYBE_P(table->options),
                          name, strlen(name) + 1,
                          zvalue)) {
-    ZVAL_FALSE(result);
+    ZVAL_NULL(result);
     return;
+  }
+
+  if (Z_TYPE_P(zvalue) == IS_STRING && zend_string_equals_literal(zvalue->value.str, "")) {
+      ZVAL_NULL(result);
+      return;
   }
 
   PHP5TO7_ZVAL_COPY(result, zvalue);
