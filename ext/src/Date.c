@@ -99,7 +99,7 @@ PHP_METHOD(Date, toDateTime)
 
   datetime_obj = php_date_obj_from_obj(Z_OBJ(datetime));
 
-  str_len = spprintf(&str, 0, "%lld",
+  str_len = spprintf(&str, 0, "%" PRId64,
                      cass_date_time_to_epoch(self->date,
                                              time_obj != NULL ? time_obj->time : 0));
   php_date_initialize(datetime_obj, str, str_len, "U", NULL, 0);
@@ -150,7 +150,7 @@ PHP_METHOD(Date, __toString)
 
   self = PHP_DRIVER_GET_DATE(getThis());
 
-  spprintf(&ret, 0, PHP_DRIVER_NAMESPACE "\\Date(seconds=%lld)", cass_date_time_to_epoch(self->date, 0));
+  spprintf(&ret, 0, PHP_DRIVER_NAMESPACE "\\Date(seconds=%" PRId64 ")", cass_date_time_to_epoch(self->date, 0));
   PHP5TO7_RETVAL_STRING(ret);
   efree(ret);
 }

@@ -151,7 +151,7 @@ PHP_METHOD(Timestamp, __toString)
 
   self = PHP_DRIVER_GET_TIMESTAMP(getThis());
 
-  spprintf(&ret, 0, "%lld", (long long int) self->timestamp);
+  spprintf(&ret, 0, "%" PRId64, self->timestamp);
   PHP5TO7_RETVAL_STRING(ret);
   efree(ret);
 }

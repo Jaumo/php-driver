@@ -39,7 +39,7 @@ typedef int pid_t;
 #ifdef WIN32
 #  define LL_FORMAT "%I64d"
 #else
-#  define LL_FORMAT "%lld"
+#  define LL_FORMAT "%" PRId64 ""
 #endif
 
 #if PHP_VERSION_ID < 50600

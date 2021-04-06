@@ -55,7 +55,7 @@ static int
 to_string(zval *result, php_driver_numeric *bigint)
 {
   char *string;
-  spprintf(&string, 0, LL_FORMAT, (long long int) bigint->data.bigint.value);
+  spprintf(&string, 0, LL_FORMAT, bigint->data.bigint.value);
   PHP5TO7_ZVAL_STRING(result, string);
   efree(string);
   return SUCCESS;

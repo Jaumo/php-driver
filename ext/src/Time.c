@@ -80,7 +80,7 @@ to_string(zval *result, php_driver_time *time)
 #ifdef WIN32
   spprintf(&string, 0, "%I64d", (long long int) time->time);
 #else
-  spprintf(&string, 0, "%lld", (long long int) time->time);
+  spprintf(&string, 0, "%" PRId64, time->time);
 #endif
   PHP5TO7_ZVAL_STRING(result, string);
   efree(string);

@@ -224,7 +224,7 @@ PHP_METHOD(ExecutionOptions, __get)
 #ifdef WIN32
     spprintf(&string, 0, "%I64d", (long long int) self->timestamp);
 #else
-    spprintf(&string, 0, "%lld", (long long int) self->timestamp);
+    spprintf(&string, 0, "%" PRId64, self->timestamp);
 #endif
     PHP5TO7_RETVAL_STRING(string);
     efree(string);
