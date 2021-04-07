@@ -172,10 +172,10 @@ ZEND_END_ARG_INFO()
 static zend_function_entry php_driver_timestamp_methods[] = {
   PHP_ME(Timestamp, __construct, arginfo__construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
   PHP_ME(Timestamp, type, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Timestamp, time, NULL, ZEND_ACC_PUBLIC)
+  PHP_ME(Timestamp, time, arginfo_none, ZEND_ACC_PUBLIC)
   PHP_ME(Timestamp, microtime, arginfo_microtime, ZEND_ACC_PUBLIC)
-  PHP_ME(Timestamp, toDateTime, NULL, ZEND_ACC_PUBLIC)
-  PHP_ME(Timestamp, __toString, NULL, ZEND_ACC_PUBLIC)
+  PHP_ME(Timestamp, toDateTime, arginfo_none, ZEND_ACC_PUBLIC)
+  PHP_ME(Timestamp, __toString, arginfo_none, ZEND_ACC_PUBLIC)
   PHP_FE_END
 };
 
