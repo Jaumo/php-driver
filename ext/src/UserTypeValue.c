@@ -43,30 +43,26 @@ php_driver_user_type_value_populate(php_driver_user_type_value *user_type_value,
   zval *current;
   zval null;
 
-
-  ZVAL_NULL(&(null));
-
   type = PHP_DRIVER_GET_TYPE(&(user_type_value->type));
+
+  // avoid unused variable warning
+  (void) current;
 
   CASS_ZEND_HASH_FOREACH_STR_KEY_VAL(&type->data.udt.types, name, current) {
     zval *value = NULL;
     size_t name_len = strlen(name);
-    (void) current;
-    if (CASS_ZEND_HASH_FIND(&user_type_value->values, name, name_len + 1, value)) {
-      if (add_assoc_zval_ex(array, name, name_len, value) == SUCCESS) {
-        Z_TRY_ADDREF_P(value);
-      } else {
-        break;
-      }
+
+    value = zend_hash_str_find(&user_type_value->values, name, name_len);
+
+    if (value != NULL) {
+      add_assoc_zval_ex(array, name, name_len, value);
+      Z_TRY_ADDREF_P(value);
     } else {
-      if (add_assoc_zval_ex(array, name, name_len, &(null)) == SUCCESS) {
-        Z_TRY_ADDREF_P(&(null));
-      } else {
-        break;
-      }
+      ZVAL_NULL(&null);
+      add_assoc_zval_ex(array, name, name_len, &null);
+      Z_TRY_ADDREF_P(&null);
     }
   } ZEND_HASH_FOREACH_END();
-
 }
 
 /* {{{ UserTypeValue::__construct(types) */
