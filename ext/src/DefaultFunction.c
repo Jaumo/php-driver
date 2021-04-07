@@ -223,8 +223,7 @@ php_driver_default_function_properties(zval *object)
 static int
 php_driver_default_function_compare(zval *obj1, zval *obj2)
 {
-  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
-    return 1; /* different classes */
+  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 
   return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj1);
 }
@@ -282,9 +281,7 @@ void php_driver_define_DefaultFunction()
 
   memcpy(&php_driver_default_function_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
   php_driver_default_function_handlers.get_properties  = php_driver_default_function_properties;
-#if PHP_VERSION_ID >= 50400
   php_driver_default_function_handlers.get_gc          = php_driver_type_default_function_gc;
-#endif
-  php_driver_default_function_handlers.compare_objects = php_driver_default_function_compare;
+  CASS_COMPAT_SET_COMPARE_HANDLER(php_driver_default_function_handlers, php_driver_default_function_compare);
   php_driver_default_function_handlers.clone_obj = NULL;
 }

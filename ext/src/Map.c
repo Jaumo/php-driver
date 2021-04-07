@@ -499,8 +499,7 @@ php_driver_map_compare(zval *obj1, zval *obj2)
   php_driver_type *type2;
   int result;
 
-  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
-    return 1; /* different classes */
+  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 
   map1 = PHP_DRIVER_GET_MAP(obj1);
   map2 = PHP_DRIVER_GET_MAP(obj2);
@@ -592,10 +591,8 @@ void php_driver_define_Map()
   zend_class_implements(php_driver_map_ce, 1, php_driver_value_ce);
   memcpy(&php_driver_map_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
   php_driver_map_handlers.std.get_properties  = php_driver_map_properties;
-#if PHP_VERSION_ID >= 50400
   php_driver_map_handlers.std.get_gc          = php_driver_map_gc;
-#endif
-  php_driver_map_handlers.std.compare_objects = php_driver_map_compare;
+  CASS_COMPAT_SET_COMPARE_HANDLER(php_driver_map_handlers.std, php_driver_map_compare);
   php_driver_map_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_map_ce->create_object = php_driver_map_new;
   zend_class_implements(php_driver_map_ce, 3, spl_ce_Countable, zend_ce_iterator, zend_ce_arrayaccess);

@@ -221,8 +221,7 @@ php_driver_timestamp_compare(zval *obj1, zval *obj2)
 {
   php_driver_timestamp *timestamp1 = NULL;
   php_driver_timestamp *timestamp2 = NULL;
-  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
-    return 1; /* different classes */
+  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 
   timestamp1 = PHP_DRIVER_GET_TIMESTAMP(obj1);
   timestamp2 = PHP_DRIVER_GET_TIMESTAMP(obj2);
@@ -264,10 +263,8 @@ void php_driver_define_Timestamp()
   zend_class_implements(php_driver_timestamp_ce, 1, php_driver_value_ce);
   memcpy(&php_driver_timestamp_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
   php_driver_timestamp_handlers.std.get_properties  = php_driver_timestamp_properties;
-#if PHP_VERSION_ID >= 50400
   php_driver_timestamp_handlers.std.get_gc          = php_driver_timestamp_gc;
-#endif
-  php_driver_timestamp_handlers.std.compare_objects = php_driver_timestamp_compare;
+  CASS_COMPAT_SET_COMPARE_HANDLER(php_driver_timestamp_handlers.std, php_driver_timestamp_compare);
   php_driver_timestamp_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_timestamp_ce->create_object = php_driver_timestamp_new;
 

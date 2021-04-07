@@ -215,8 +215,7 @@ php_driver_date_compare(zval *obj1, zval *obj2)
 {
   php_driver_date *date1 = NULL;
   php_driver_date *date2 = NULL;
-  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
-    return 1; /* different classes */
+  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 
   date1 = PHP_DRIVER_GET_DATE(obj1);
   date2 = PHP_DRIVER_GET_DATE(obj2);
@@ -260,10 +259,8 @@ void php_driver_define_Date()
   zend_class_implements(php_driver_date_ce, 1, php_driver_value_ce);
   memcpy(&php_driver_date_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
   php_driver_date_handlers.std.get_properties  = php_driver_date_properties;
-#if PHP_VERSION_ID >= 50400
   php_driver_date_handlers.std.get_gc          = php_driver_date_gc;
-#endif
-  php_driver_date_handlers.std.compare_objects = php_driver_date_compare;
+  CASS_COMPAT_SET_COMPARE_HANDLER(php_driver_date_handlers.std, php_driver_date_compare);
   php_driver_date_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_date_ce->create_object = php_driver_date_new;
 

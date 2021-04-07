@@ -458,8 +458,7 @@ php_driver_smallint_compare(zval *obj1, zval *obj2)
   php_driver_numeric *smallint1 = NULL;
   php_driver_numeric *smallint2 = NULL;
 
-  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
-    return 1; /* different classes */
+  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 
   smallint1 = PHP_DRIVER_GET_NUMERIC(obj1);
   smallint2 = PHP_DRIVER_GET_NUMERIC(obj2);
@@ -528,10 +527,8 @@ void php_driver_define_Smallint()
 
   memcpy(&php_driver_smallint_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
   php_driver_smallint_handlers.std.get_properties  = php_driver_smallint_properties;
-#if PHP_VERSION_ID >= 50400
   php_driver_smallint_handlers.std.get_gc          = php_driver_smallint_gc;
-#endif
-  php_driver_smallint_handlers.std.compare_objects = php_driver_smallint_compare;
+  CASS_COMPAT_SET_COMPARE_HANDLER(php_driver_smallint_handlers.std, php_driver_smallint_compare);
   php_driver_smallint_handlers.std.cast_object     = php_driver_smallint_cast;
 
   php_driver_smallint_handlers.hash_value = php_driver_smallint_hash_value;

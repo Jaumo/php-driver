@@ -250,8 +250,7 @@ php_driver_duration_compare(zval *obj1, zval *obj2)
 {
   php_driver_duration *left, *right;
 
-  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
-    return 1; /* different classes */
+  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 
   left = PHP_DRIVER_GET_DURATION(obj1);
   right = PHP_DRIVER_GET_DURATION(obj2);
@@ -322,7 +321,7 @@ void php_driver_define_Duration()
 
   memcpy(&php_driver_duration_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
   php_driver_duration_handlers.std.get_properties  = php_driver_duration_properties;
-  php_driver_duration_handlers.std.compare_objects = php_driver_duration_compare;
+  CASS_COMPAT_SET_COMPARE_HANDLER(php_driver_duration_handlers.std, php_driver_duration_compare);
 
   php_driver_duration_handlers.hash_value = php_driver_duration_hash_value;
   php_driver_duration_handlers.std.clone_obj = NULL;

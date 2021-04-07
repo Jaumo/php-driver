@@ -149,8 +149,7 @@ php_driver_blob_compare(zval *obj1, zval *obj2)
   php_driver_blob *blob1 = NULL;
   php_driver_blob *blob2 = NULL;
 
-  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
-    return 1; /* different classes */
+  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 
   blob1 = PHP_DRIVER_GET_BLOB(obj1);
   blob2 = PHP_DRIVER_GET_BLOB(obj2);
@@ -202,10 +201,8 @@ void php_driver_define_Blob()
   zend_class_implements(php_driver_blob_ce, 1, php_driver_value_ce);
   memcpy(&php_driver_blob_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
   php_driver_blob_handlers.std.get_properties  = php_driver_blob_properties;
-#if PHP_VERSION_ID >= 50400
   php_driver_blob_handlers.std.get_gc          = php_driver_blob_gc;
-#endif
-  php_driver_blob_handlers.std.compare_objects = php_driver_blob_compare;
+  CASS_COMPAT_SET_COMPARE_HANDLER(php_driver_blob_handlers.std, php_driver_blob_compare);
   php_driver_blob_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_blob_ce->create_object = php_driver_blob_new;
 

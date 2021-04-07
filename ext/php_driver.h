@@ -151,9 +151,14 @@ cass_string_compare(zend_string *s1, zend_string *s2)
 #if PHP_VERSION_ID >= 80000
 #define CASS_COMPAT_GET_NUMERIC(obj) php_driver_numeric_object_fetch(obj)
 #define CASS_COMPAT_OBJECT_HANDLER_TYPE zend_object
+#define CASS_COMPAT_SET_COMPARE_HANDLER(ref, handler) ref.compare = handler
 #else
 #define CASS_COMPAT_GET_NUMERIC(obj) php_driver_numeric_object_fetch(Z_OBJ_P(obj))
 #define CASS_COMPAT_OBJECT_HANDLER_TYPE zval
+#define CASS_COMPAT_SET_COMPARE_HANDLER(ref, handler) ref.compare_objects = handler
+#define ZEND_COMPARE_OBJECTS_FALLBACK(op1, op2)         \
+  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))               \
+    return 1; /* different classes */
 #endif
 
 

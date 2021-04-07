@@ -426,8 +426,7 @@ php_driver_bigint_compare(zval *obj1, zval *obj2)
   php_driver_numeric *bigint1 = NULL;
   php_driver_numeric *bigint2 = NULL;
 
-  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
-    return 1; /* different classes */
+  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 
   bigint1 = PHP_DRIVER_GET_NUMERIC(obj1);
   bigint2 = PHP_DRIVER_GET_NUMERIC(obj2);
@@ -496,10 +495,8 @@ void php_driver_define_Bigint()
 
   memcpy(&php_driver_bigint_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
   php_driver_bigint_handlers.std.get_properties  = php_driver_bigint_properties;
-#if PHP_VERSION_ID >= 50400
   php_driver_bigint_handlers.std.get_gc          = php_driver_bigint_gc;
-#endif
-  php_driver_bigint_handlers.std.compare_objects = php_driver_bigint_compare;
+  CASS_COMPAT_SET_COMPARE_HANDLER(php_driver_bigint_handlers.std, php_driver_bigint_compare);
   php_driver_bigint_handlers.std.cast_object     = php_driver_bigint_cast;
 
   php_driver_bigint_handlers.hash_value = php_driver_bigint_hash_value;

@@ -146,6 +146,7 @@ php_driver_type_collection_properties(zval *object)
 static int
 php_driver_type_collection_compare(zval *obj1, zval *obj2)
 {
+  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   php_driver_type* type1 = PHP_DRIVER_GET_TYPE(obj1);
   php_driver_type* type2 = PHP_DRIVER_GET_TYPE(obj2);
 
@@ -184,10 +185,8 @@ void php_driver_define_TypeCollection()
   php_driver_type_collection_ce = zend_register_internal_class_ex(&ce, php_driver_type_ce);
   memcpy(&php_driver_type_collection_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
   php_driver_type_collection_handlers.get_properties  = php_driver_type_collection_properties;
-#if PHP_VERSION_ID >= 50400
   php_driver_type_collection_handlers.get_gc          = php_driver_type_collection_gc;
-#endif
-  php_driver_type_collection_handlers.compare_objects = php_driver_type_collection_compare;
+  CASS_COMPAT_SET_COMPARE_HANDLER(php_driver_type_collection_handlers, php_driver_type_collection_compare);
   php_driver_type_collection_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_type_collection_ce->create_object = php_driver_type_collection_new;
 }

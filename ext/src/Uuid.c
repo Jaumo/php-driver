@@ -158,8 +158,7 @@ php_driver_uuid_compare(zval *obj1, zval *obj2)
   php_driver_uuid *uuid1 = NULL;
   php_driver_uuid *uuid2 = NULL;
 
-  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
-    return 1; /* different classes */
+  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 
   uuid1 = PHP_DRIVER_GET_UUID(obj1);
   uuid2 = PHP_DRIVER_GET_UUID(obj2);
@@ -209,10 +208,8 @@ php_driver_define_Uuid()
   zend_class_implements(php_driver_uuid_ce, 2, php_driver_value_ce, php_driver_uuid_interface_ce);
   memcpy(&php_driver_uuid_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
   php_driver_uuid_handlers.std.get_properties  = php_driver_uuid_properties;
-#if PHP_VERSION_ID >= 50400
   php_driver_uuid_handlers.std.get_gc          = php_driver_uuid_gc;
-#endif
-  php_driver_uuid_handlers.std.compare_objects = php_driver_uuid_compare;
+  CASS_COMPAT_SET_COMPARE_HANDLER(php_driver_uuid_handlers.std, php_driver_uuid_compare);
   php_driver_uuid_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_uuid_ce->create_object = php_driver_uuid_new;
 
