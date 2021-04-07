@@ -30,6 +30,6 @@ void php_driver_define_RangeException()
   zend_class_entry ce;
 
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Exception\\RangeException", RangeException_methods);
-  php_driver_range_exception_ce = php5to7_zend_register_internal_class_ex(&ce, spl_ce_RangeException);
+  php_driver_range_exception_ce = zend_register_internal_class_ex(&ce, spl_ce_RangeException);
   zend_class_implements(php_driver_range_exception_ce, 1, php_driver_exception_ce);
 }

@@ -19,7 +19,7 @@ static void to_string(zval *result, cass_int64_t value)
 {
   char *string;
   spprintf(&string, 0, LL_FORMAT, value);
-  PHP5TO7_ZVAL_STRING(result, string);
+  ZVAL_STRING(result, string);
   efree(string);
 }
 
@@ -30,7 +30,7 @@ static int get_param(zval* value,
                      cass_int64_t *destination )
 {
   if (Z_TYPE_P(value) == IS_LONG) {
-    php5to7_long long_value = Z_LVAL_P(value);
+    zend_long long_value = Z_LVAL_P(value);
 
     if (long_value > max || long_value < min) {
       zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
@@ -161,14 +161,14 @@ PHP_METHOD(Duration, __toString)
 
   // Build up string representation of this duration.
   rep = php_driver_duration_to_string(self);
-  PHP5TO7_RETVAL_STRING(rep);
+  RETVAL_STRING(rep);
   efree(rep);
 }
 
 PHP_METHOD(Duration, type)
 {
-  php5to7_zval type = php_driver_type_scalar(CASS_VALUE_TYPE_DURATION);
-  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(type), 1, 1);
+  zval type = php_driver_type_scalar(CASS_VALUE_TYPE_DURATION);
+  RETURN_ZVAL(&(type), 1, 1);
 }
 
 PHP_METHOD(Duration, months)
@@ -231,16 +231,16 @@ php_driver_duration_properties(zval *object)
   HashTable *props = zend_std_get_properties(object);
   php_driver_duration  *self = PHP_DRIVER_GET_DURATION(object);
 
-  php5to7_zval wrapped_months, wrapped_days, wrapped_nanos;
-  PHP5TO7_ZVAL_MAYBE_MAKE(wrapped_months);
-  PHP5TO7_ZVAL_MAYBE_MAKE(wrapped_days);
-  PHP5TO7_ZVAL_MAYBE_MAKE(wrapped_nanos);
-  ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(wrapped_months), self->months);
-  ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(wrapped_days), self->days);
-  ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(wrapped_nanos), self->nanos);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "months", sizeof("months"), PHP5TO7_ZVAL_MAYBE_P(wrapped_months), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "days", sizeof("days"), PHP5TO7_ZVAL_MAYBE_P(wrapped_days), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "nanos", sizeof("nanos"), PHP5TO7_ZVAL_MAYBE_P(wrapped_nanos), sizeof(zval));
+  zval wrapped_months, wrapped_days, wrapped_nanos;
+
+
+
+  ZVAL_LONG(&(wrapped_months), self->months);
+  ZVAL_LONG(&(wrapped_days), self->days);
+  ZVAL_LONG(&(wrapped_nanos), self->nanos);
+  zend_hash_str_update(props, "months", strlen("months"), &(wrapped_months));
+  zend_hash_str_update(props, "days", strlen("days"), &(wrapped_days));
+  zend_hash_str_update(props, "nanos", strlen("nanos"), &(wrapped_nanos));
 
   return props;
 }
@@ -292,21 +292,21 @@ php_driver_duration_hash_value(zval *obj)
 }
 
 static void
-php_driver_duration_free(php5to7_zend_object_free *object)
+php_driver_duration_free(zend_object *object)
 {
-  php_driver_duration *self = PHP5TO7_ZEND_OBJECT_GET(duration, object);
+  php_driver_duration *self = php_driver_duration_object_fetch(object);;
 
   /* Clean up */
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
+
 }
 
-static php5to7_zend_object
+static zend_object *
 php_driver_duration_new(zend_class_entry *ce)
 {
-  php_driver_duration *self = PHP5TO7_ZEND_OBJECT_ECALLOC(duration, ce);
-  PHP5TO7_ZEND_OBJECT_INIT(duration, self, ce);
+  php_driver_duration *self = CASS_ZEND_OBJECT_ECALLOC(duration, ce);
+  CASS_ZEND_OBJECT_INIT(duration, self, ce);
 }
 
 void php_driver_define_Duration()
@@ -317,7 +317,7 @@ void php_driver_define_Duration()
   php_driver_duration_ce = zend_register_internal_class(&ce);
   zend_class_implements(php_driver_duration_ce, 1, php_driver_value_ce);
 
-  php_driver_duration_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_duration_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_duration_ce->create_object = php_driver_duration_new;
 
   memcpy(&php_driver_duration_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

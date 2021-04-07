@@ -19,7 +19,7 @@
 
 #include "php_driver.h"
 
-php5to7_zval
+zval
 php_driver_create_index(php_driver_ref* schema,
                            const CassIndexMeta *meta);
 

@@ -29,112 +29,112 @@ static void init_execution_options(php_driver_execution_options *self)
   self->paging_state_token = NULL;
   self->paging_state_token_size = 0;
   self->timestamp = INT64_MIN;
-  PHP5TO7_ZVAL_UNDEF(self->arguments);
-  PHP5TO7_ZVAL_UNDEF(self->timeout);
-  PHP5TO7_ZVAL_UNDEF(self->retry_policy);
+  ZVAL_UNDEF(&(self->arguments));
+  ZVAL_UNDEF(&(self->timeout));
+  ZVAL_UNDEF(&(self->retry_policy));
 }
 
 static int build_from_array(php_driver_execution_options *self, zval *options, int copy)
 {
-  php5to7_zval *consistency = NULL;
-  php5to7_zval *serial_consistency = NULL;
-  php5to7_zval *page_size = NULL;
-  php5to7_zval *paging_state_token = NULL;
-  php5to7_zval *timeout = NULL;
-  php5to7_zval *arguments = NULL;
-  php5to7_zval *retry_policy = NULL;
-  php5to7_zval *timestamp = NULL;
+  zval *consistency = NULL;
+  zval *serial_consistency = NULL;
+  zval *page_size = NULL;
+  zval *paging_state_token = NULL;
+  zval *timeout = NULL;
+  zval *arguments = NULL;
+  zval *retry_policy = NULL;
+  zval *timestamp = NULL;
 
-  if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "consistency", sizeof("consistency"), consistency)) {
-    if (php_driver_get_consistency(PHP5TO7_ZVAL_MAYBE_DEREF(consistency), &self->consistency) == FAILURE) {
+  if (CASS_ZEND_HASH_FIND(Z_ARRVAL_P(options), "consistency", sizeof("consistency"), consistency)) {
+    if (php_driver_get_consistency(consistency, &self->consistency) == FAILURE) {
       return FAILURE;
     }
   }
 
-  if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "serial_consistency", sizeof("serial_consistency"), serial_consistency)) {
-    if (php_driver_get_serial_consistency(PHP5TO7_ZVAL_MAYBE_DEREF(serial_consistency), &self->serial_consistency) == FAILURE) {
+  if (CASS_ZEND_HASH_FIND(Z_ARRVAL_P(options), "serial_consistency", sizeof("serial_consistency"), serial_consistency)) {
+    if (php_driver_get_serial_consistency(serial_consistency, &self->serial_consistency) == FAILURE) {
       return FAILURE;
     }
   }
 
-  if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "page_size", sizeof("page_size"), page_size)) {
-    if (Z_TYPE_P(PHP5TO7_ZVAL_MAYBE_DEREF(page_size)) != IS_LONG || Z_LVAL_P(PHP5TO7_ZVAL_MAYBE_DEREF(page_size)) <= 0) {
-      throw_invalid_argument(PHP5TO7_ZVAL_MAYBE_DEREF(page_size), "page_size", "greater than zero");
+  if (CASS_ZEND_HASH_FIND(Z_ARRVAL_P(options), "page_size", sizeof("page_size"), page_size)) {
+    if (Z_TYPE_P(page_size) != IS_LONG || Z_LVAL_P(page_size) <= 0) {
+      throw_invalid_argument(page_size, "page_size", "greater than zero");
       return FAILURE;
     }
-    self->page_size = Z_LVAL_P(PHP5TO7_ZVAL_MAYBE_DEREF(page_size));
+    self->page_size = Z_LVAL_P(page_size);
   }
 
-  if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "paging_state_token", sizeof("paging_state_token"), paging_state_token)) {
-    if (Z_TYPE_P(PHP5TO7_ZVAL_MAYBE_DEREF(paging_state_token)) != IS_STRING) {
-      throw_invalid_argument(PHP5TO7_ZVAL_MAYBE_DEREF(paging_state_token), "paging_state_token", "a string");
+  if (CASS_ZEND_HASH_FIND(Z_ARRVAL_P(options), "paging_state_token", sizeof("paging_state_token"), paging_state_token)) {
+    if (Z_TYPE_P(paging_state_token) != IS_STRING) {
+      throw_invalid_argument(paging_state_token, "paging_state_token", "a string");
       return FAILURE;
     }
     if (copy) {
-      self->paging_state_token = estrndup(Z_STRVAL_P(PHP5TO7_ZVAL_MAYBE_DEREF(paging_state_token)),
-                                          Z_STRLEN_P(PHP5TO7_ZVAL_MAYBE_DEREF(paging_state_token)));
+      self->paging_state_token = estrndup(Z_STRVAL_P(paging_state_token),
+                                          Z_STRLEN_P(paging_state_token));
     } else {
-      self->paging_state_token = Z_STRVAL_P(PHP5TO7_ZVAL_MAYBE_DEREF(paging_state_token));
+      self->paging_state_token = Z_STRVAL_P(paging_state_token);
     }
-    self->paging_state_token_size = Z_STRLEN_P(PHP5TO7_ZVAL_MAYBE_DEREF(paging_state_token));
+    self->paging_state_token_size = Z_STRLEN_P(paging_state_token);
   }
 
-  if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "timeout", sizeof("timeout"), timeout)) {
-    if (!(Z_TYPE_P(PHP5TO7_ZVAL_MAYBE_DEREF(timeout)) == IS_LONG   && Z_LVAL_P(PHP5TO7_ZVAL_MAYBE_DEREF(timeout)) > 0) &&
-        !(Z_TYPE_P(PHP5TO7_ZVAL_MAYBE_DEREF(timeout)) == IS_DOUBLE && Z_DVAL_P(PHP5TO7_ZVAL_MAYBE_DEREF(timeout)) > 0) &&
-        !(Z_TYPE_P(PHP5TO7_ZVAL_MAYBE_DEREF(timeout)) == IS_NULL)) {
-      throw_invalid_argument(PHP5TO7_ZVAL_MAYBE_DEREF(timeout), "timeout", "a number of seconds greater than zero or null");
+  if (CASS_ZEND_HASH_FIND(Z_ARRVAL_P(options), "timeout", sizeof("timeout"), timeout)) {
+    if (!(Z_TYPE_P(timeout) == IS_LONG   && Z_LVAL_P(timeout) > 0) &&
+        !(Z_TYPE_P(timeout) == IS_DOUBLE && Z_DVAL_P(timeout) > 0) &&
+        !(Z_TYPE_P(timeout) == IS_NULL)) {
+      throw_invalid_argument(timeout, "timeout", "a number of seconds greater than zero or null");
       return FAILURE;
     }
 
     if (copy) {
-      PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(self->timeout), PHP5TO7_ZVAL_MAYBE_DEREF(timeout));
+      ZVAL_COPY(&(self->timeout), timeout);
     } else {
       self->timeout = *timeout;
     }
   }
 
-  if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "arguments", sizeof("arguments"), arguments)) {
-    if (Z_TYPE_P(PHP5TO7_ZVAL_MAYBE_DEREF(arguments)) != IS_ARRAY) {
-      throw_invalid_argument(PHP5TO7_ZVAL_MAYBE_DEREF(arguments), "arguments", "an array");
+  if (CASS_ZEND_HASH_FIND(Z_ARRVAL_P(options), "arguments", sizeof("arguments"), arguments)) {
+    if (Z_TYPE_P(arguments) != IS_ARRAY) {
+      throw_invalid_argument(arguments, "arguments", "an array");
       return FAILURE;
     }
 
     if (copy) {
-      PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(self->arguments), PHP5TO7_ZVAL_MAYBE_DEREF(arguments));
+      ZVAL_COPY(&(self->arguments), arguments);
     } else {
       self->arguments = *arguments;
     }
   }
 
-  if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "retry_policy", sizeof("retry_policy"), retry_policy)) {
-    if (Z_TYPE_P(PHP5TO7_ZVAL_MAYBE_DEREF(retry_policy)) != IS_OBJECT &&
-        !instanceof_function(Z_OBJCE_P(PHP5TO7_ZVAL_MAYBE_DEREF(retry_policy)),
+  if (CASS_ZEND_HASH_FIND(Z_ARRVAL_P(options), "retry_policy", sizeof("retry_policy"), retry_policy)) {
+    if (Z_TYPE_P(retry_policy) != IS_OBJECT &&
+        !instanceof_function(Z_OBJCE_P(retry_policy),
                              php_driver_retry_policy_ce)) {
-      throw_invalid_argument(PHP5TO7_ZVAL_MAYBE_DEREF(retry_policy),
+      throw_invalid_argument(retry_policy,
                              "retry_policy",
                              "an instance of " PHP_DRIVER_NAMESPACE "\\RetryPolicy");
       return FAILURE;
     }
 
     if (copy) {
-      PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(self->retry_policy), PHP5TO7_ZVAL_MAYBE_DEREF(retry_policy));
+      ZVAL_COPY(&(self->retry_policy), retry_policy);
     } else {
       self->retry_policy = *retry_policy;
     }
   }
 
-  if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "timestamp", sizeof("timestamp"), timestamp)) {
-    if (Z_TYPE_P(PHP5TO7_ZVAL_MAYBE_DEREF(timestamp)) == IS_LONG) {
-      self->timestamp = Z_LVAL_P(PHP5TO7_ZVAL_MAYBE_DEREF(timestamp));
-    } else if (Z_TYPE_P(PHP5TO7_ZVAL_MAYBE_DEREF(timestamp)) == IS_STRING) {
-      if (!php_driver_parse_bigint(Z_STRVAL_P(PHP5TO7_ZVAL_MAYBE_DEREF(timestamp)),
-                                   Z_STRLEN_P(PHP5TO7_ZVAL_MAYBE_DEREF(timestamp)),
+  if (CASS_ZEND_HASH_FIND(Z_ARRVAL_P(options), "timestamp", sizeof("timestamp"), timestamp)) {
+    if (Z_TYPE_P(timestamp) == IS_LONG) {
+      self->timestamp = Z_LVAL_P(timestamp);
+    } else if (Z_TYPE_P(timestamp) == IS_STRING) {
+      if (!php_driver_parse_bigint(Z_STRVAL_P(timestamp),
+                                   Z_STRLEN_P(timestamp),
                                    &self->timestamp)) {
         return FAILURE;
       }
     } else {
-      throw_invalid_argument(PHP5TO7_ZVAL_MAYBE_DEREF(timestamp), "timestamp", "an integer or integer string");
+      throw_invalid_argument(timestamp, "timestamp", "an integer or integer string");
       return FAILURE;
     }
   }
@@ -170,7 +170,7 @@ PHP_METHOD(ExecutionOptions, __construct)
 PHP_METHOD(ExecutionOptions, __get)
 {
   char *name;
-  php5to7_size name_len;
+  size_t name_len;
 
   php_driver_execution_options *self = NULL;
 
@@ -199,23 +199,23 @@ PHP_METHOD(ExecutionOptions, __get)
     if (!self->paging_state_token) {
       RETURN_NULL();
     }
-    PHP5TO7_RETURN_STRINGL(self->paging_state_token,
+    RETURN_STRINGL(self->paging_state_token,
                            self->paging_state_token_size);
   } else if (name_len == 7 && strncmp("timeout", name, name_len) == 0) {
-    if (PHP5TO7_ZVAL_IS_UNDEF(self->timeout)) {
+    if (Z_ISUNDEF(self->timeout)) {
       RETURN_NULL();
     }
-    RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->timeout), 1, 0);
+    RETURN_ZVAL(&(self->timeout), 1, 0);
   } else if (name_len == 9 && strncmp("arguments", name, name_len) == 0) {
-    if (PHP5TO7_ZVAL_IS_UNDEF(self->arguments)) {
+    if (Z_ISUNDEF(self->arguments)) {
       RETURN_NULL();
     }
-    RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->arguments), 1, 0);
+    RETURN_ZVAL(&(self->arguments), 1, 0);
   } else if (name_len == 11 && strncmp("retryPolicy", name, name_len) == 0) {
-    if (PHP5TO7_ZVAL_IS_UNDEF(self->retry_policy)) {
+    if (Z_ISUNDEF(self->retry_policy)) {
       RETURN_NULL();
     }
-    RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->retry_policy), 1, 0);
+    RETURN_ZVAL(&(self->retry_policy), 1, 0);
   } else if (name_len == 9 && strncmp("timestamp", name, name_len) == 0) {
     char *string;
     if (self->timestamp == INT64_MIN) {
@@ -226,7 +226,7 @@ PHP_METHOD(ExecutionOptions, __get)
 #else
     spprintf(&string, 0, "%" PRId64, self->timestamp);
 #endif
-    PHP5TO7_RETVAL_STRING(string);
+    RETVAL_STRING(string);
     efree(string);
   }
 }
@@ -265,31 +265,31 @@ php_driver_execution_options_compare(zval *obj1, zval *obj2)
 }
 
 static void
-php_driver_execution_options_free(php5to7_zend_object_free *object)
+php_driver_execution_options_free(zend_object *object)
 {
   php_driver_execution_options *self =
-      PHP5TO7_ZEND_OBJECT_GET(execution_options, object);
+          php_driver_execution_options_object_fetch(object);;
 
   if (self->paging_state_token) {
     efree(self->paging_state_token);
   }
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->arguments);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->timeout);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->retry_policy);
+  CASS_ZVAL_MAYBE_DESTROY(self->arguments);
+  CASS_ZVAL_MAYBE_DESTROY(self->timeout);
+  CASS_ZVAL_MAYBE_DESTROY(self->retry_policy);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
+
 }
 
-static php5to7_zend_object
+static zend_object *
 php_driver_execution_options_new(zend_class_entry *ce)
 {
   php_driver_execution_options *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(execution_options, ce);
+      CASS_ZEND_OBJECT_ECALLOC(execution_options, ce);
 
   init_execution_options(self);
 
-  PHP5TO7_ZEND_OBJECT_INIT(execution_options, self, ce);
+  CASS_ZEND_OBJECT_INIT(execution_options, self, ce);
 }
 
 void php_driver_define_ExecutionOptions()
@@ -298,7 +298,7 @@ void php_driver_define_ExecutionOptions()
 
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\ExecutionOptions", php_driver_execution_options_methods);
   php_driver_execution_options_ce = zend_register_internal_class(&ce);
-  php_driver_execution_options_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_execution_options_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_execution_options_ce->create_object = php_driver_execution_options_new;
 
   memcpy(&php_driver_execution_options_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

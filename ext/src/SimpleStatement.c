@@ -66,9 +66,9 @@ php_driver_simple_statement_compare(zval *obj1, zval *obj2)
 }
 
 static void
-php_driver_simple_statement_free(php5to7_zend_object_free *object)
+php_driver_simple_statement_free(zend_object *object)
 {
-  php_driver_statement *self = PHP5TO7_ZEND_OBJECT_GET(statement, object);
+  php_driver_statement *self = php_driver_statement_object_fetch(object);;
 
   if (self->data.simple.cql) {
     efree(self->data.simple.cql);
@@ -76,19 +76,19 @@ php_driver_simple_statement_free(php5to7_zend_object_free *object)
   }
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
+
 }
 
-static php5to7_zend_object
+static zend_object *
 php_driver_simple_statement_new(zend_class_entry *ce)
 {
   php_driver_statement *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(statement, ce);
+      CASS_ZEND_OBJECT_ECALLOC(statement, ce);
 
   self->type = PHP_DRIVER_SIMPLE_STATEMENT;
   self->data.simple.cql  = NULL;
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(statement, simple_statement, self, ce);
+  CASS_ZEND_OBJECT_INIT_EX(statement, simple_statement, self, ce);
 }
 
 void php_driver_define_SimpleStatement()
@@ -98,7 +98,7 @@ void php_driver_define_SimpleStatement()
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\SimpleStatement", php_driver_simple_statement_methods);
   php_driver_simple_statement_ce = zend_register_internal_class(&ce);
   zend_class_implements(php_driver_simple_statement_ce, 1, php_driver_statement_ce);
-  php_driver_simple_statement_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_simple_statement_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_simple_statement_ce->create_object = php_driver_simple_statement_new;
 
   memcpy(&php_driver_simple_statement_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

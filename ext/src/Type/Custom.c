@@ -38,7 +38,7 @@ PHP_METHOD(TypeCustom, name)
 
   custom = PHP_DRIVER_GET_TYPE(getThis());
 
-  PHP5TO7_RETVAL_STRING(custom->data.custom.class_name);
+  RETVAL_STRING(custom->data.custom.class_name);
 }
 
 PHP_METHOD(TypeCustom, __toString)
@@ -51,7 +51,7 @@ PHP_METHOD(TypeCustom, __toString)
 
   custom = PHP_DRIVER_GET_TYPE(getThis());
 
-  PHP5TO7_RETVAL_STRING(custom->data.custom.class_name);
+  RETVAL_STRING(custom->data.custom.class_name);
 }
 
 PHP_METHOD(TypeCustom, create)
@@ -80,7 +80,7 @@ static zend_function_entry php_driver_type_custom_methods[] = {
 static zend_object_handlers php_driver_type_custom_handlers;
 
 static HashTable *
-php_driver_type_custom_gc(zval *object, php5to7_zval_gc table, int *n)
+php_driver_type_custom_gc(zval *object, zval **table, int *n)
 {
   *table = NULL;
   *n = 0;
@@ -90,17 +90,15 @@ php_driver_type_custom_gc(zval *object, php5to7_zval_gc table, int *n)
 static HashTable *
 php_driver_type_custom_properties(zval *object)
 {
-  php5to7_zval name;
+  zval name;
 
   php_driver_type *self  = PHP_DRIVER_GET_TYPE(object);
   HashTable      *props = zend_std_get_properties(object);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(name);
-  PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(name), self->data.custom.class_name);
 
-  PHP5TO7_ZEND_HASH_UPDATE(props,
-                           "name", sizeof("name"),
-                           PHP5TO7_ZVAL_MAYBE_P(name), sizeof(zval));
+  ZVAL_STRING(&(name), self->data.custom.class_name);
+
+  zend_hash_str_update(props, "name", strlen("name"), &(name));
   return props;
 }
 
@@ -114,9 +112,9 @@ php_driver_type_custom_compare(zval *obj1, zval *obj2)
 }
 
 static void
-php_driver_type_custom_free(php5to7_zend_object_free *object)
+php_driver_type_custom_free(zend_object *object)
 {
-  php_driver_type *self = PHP5TO7_ZEND_OBJECT_GET(type, object);
+  php_driver_type *self = php_driver_type_object_fetch(object);;
 
   if (self->data_type) cass_data_type_free(self->data_type);
   if (self->data.custom.class_name) {
@@ -125,19 +123,19 @@ php_driver_type_custom_free(php5to7_zend_object_free *object)
   }
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
+
 }
 
-static php5to7_zend_object
+static zend_object *
 php_driver_type_custom_new(zend_class_entry *ce)
 {
-  php_driver_type *self = PHP5TO7_ZEND_OBJECT_ECALLOC(type, ce);
+  php_driver_type *self = CASS_ZEND_OBJECT_ECALLOC(type, ce);
 
   self->type = CASS_VALUE_TYPE_CUSTOM;
   self->data_type = cass_data_type_new(self->type);
   self->data.custom.class_name = NULL;
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(type, type_custom, self, ce);
+  CASS_ZEND_OBJECT_INIT_EX(type, type_custom, self, ce);
 }
 
 void php_driver_define_TypeCustom()
@@ -145,13 +143,13 @@ void php_driver_define_TypeCustom()
   zend_class_entry ce;
 
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Type\\Custom", php_driver_type_custom_methods);
-  php_driver_type_custom_ce = php5to7_zend_register_internal_class_ex(&ce, php_driver_type_ce);
+  php_driver_type_custom_ce = zend_register_internal_class_ex(&ce, php_driver_type_ce);
   memcpy(&php_driver_type_custom_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
   php_driver_type_custom_handlers.get_properties  = php_driver_type_custom_properties;
 #if PHP_VERSION_ID >= 50400
   php_driver_type_custom_handlers.get_gc          = php_driver_type_custom_gc;
 #endif
   php_driver_type_custom_handlers.compare_objects = php_driver_type_custom_compare;
-  php_driver_type_custom_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_type_custom_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_type_custom_ce->create_object = php_driver_type_custom_new;
 }

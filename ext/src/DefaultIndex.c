@@ -24,27 +24,27 @@
 
 zend_class_entry *php_driver_default_index_ce = NULL;
 
-php5to7_zval
+zval
 php_driver_create_index(php_driver_ref *schema,
                            const CassIndexMeta *meta)
 {
-  php5to7_zval result;
+  zval result;
   php_driver_index *index;
   const char *name;
   size_t name_length;
 
-  PHP5TO7_ZVAL_UNDEF(result);
+  ZVAL_UNDEF(&(result));
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(result);
-  object_init_ex(PHP5TO7_ZVAL_MAYBE_P(result), php_driver_default_index_ce);
 
-  index = PHP_DRIVER_GET_INDEX(PHP5TO7_ZVAL_MAYBE_P(result));
+  object_init_ex(&(result), php_driver_default_index_ce);
+
+  index = PHP_DRIVER_GET_INDEX(&(result));
   index->meta   = meta;
   index->schema = php_driver_add_ref(schema);
 
   cass_index_meta_name(meta, &name, &name_length);
-  PHP5TO7_ZVAL_MAYBE_MAKE(index->name);
-  PHP5TO7_ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(index->name), name, name_length);
+
+  ZVAL_STRINGL(&(index->name), name, name_length);
 
   return result;
 }
@@ -57,7 +57,7 @@ PHP_METHOD(DefaultIndex, name)
     return;
 
   self = PHP_DRIVER_GET_INDEX(getThis());
-  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->name), 1, 0);
+  RETURN_ZVAL(&(self->name), 1, 0);
 }
 
 PHP_METHOD(DefaultIndex, target)
@@ -68,15 +68,15 @@ PHP_METHOD(DefaultIndex, target)
     return;
 
   self = PHP_DRIVER_GET_INDEX(getThis());
-  if (PHP5TO7_ZVAL_IS_UNDEF(self->target)) {
+  if (Z_ISUNDEF(self->target)) {
     const char *target;
     size_t target_length;
     cass_index_meta_target(self->meta, &target, &target_length);
-    PHP5TO7_ZVAL_MAYBE_MAKE(self->target);
-    PHP5TO7_ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(self->target), target, target_length);
+
+    ZVAL_STRINGL(&(self->target), target, target_length);
   }
 
-  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->target), 1, 0);
+  RETURN_ZVAL(&(self->target), 1, 0);
 }
 
 PHP_METHOD(DefaultIndex, kind)
@@ -87,33 +87,33 @@ PHP_METHOD(DefaultIndex, kind)
     return;
 
   self = PHP_DRIVER_GET_INDEX(getThis());
-  if (PHP5TO7_ZVAL_IS_UNDEF(self->kind)) {
-    PHP5TO7_ZVAL_MAYBE_MAKE(self->kind);
+  if (Z_ISUNDEF(self->kind)) {
+
     switch (cass_index_meta_type(self->meta)) {
       case CASS_INDEX_TYPE_KEYS:
-        PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(self->kind), "keys");
+        ZVAL_STRING(&(self->kind), "keys");
         break;
       case CASS_INDEX_TYPE_CUSTOM:
-        PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(self->kind), "custom");
+        ZVAL_STRING(&(self->kind), "custom");
         break;
       case CASS_INDEX_TYPE_COMPOSITES:
-        PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(self->kind), "composites");
+        ZVAL_STRING(&(self->kind), "composites");
         break;
       default:
-        PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(self->kind), "unknown");
+        ZVAL_STRING(&(self->kind), "unknown");
         break;
     }
   }
 
-  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->kind), 1, 0);
+  RETURN_ZVAL(&(self->kind), 1, 0);
 }
 
 void php_driver_index_build_option(php_driver_index *index)
 {
   const CassValue* options;
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(index->options);
-  array_init(PHP5TO7_ZVAL_MAYBE_P(index->options));
+
+  array_init(&(index->options));
   options = cass_index_meta_options(index->meta);
   if (options) {
     CassIterator* iterator = cass_iterator_from_map(options);
@@ -127,9 +127,7 @@ void php_driver_index_build_option(php_driver_index *index)
 
       cass_value_get_string(key, &key_str, &key_str_length);
       cass_value_get_string(value, &value_str, &value_str_length);
-      PHP5TO7_ADD_ASSOC_STRINGL_EX(PHP5TO7_ZVAL_MAYBE_P(index->options),
-                                   key_str, key_str_length + 1,
-                                   value_str, value_str_length);
+      add_assoc_stringl_ex(&(index->options), key_str, key_str_length, value_str, value_str_length);
     }
   }
 }
@@ -137,9 +135,9 @@ void php_driver_index_build_option(php_driver_index *index)
 PHP_METHOD(DefaultIndex, option)
 {
   char *name;
-  php5to7_size name_len;
+  size_t name_len;
   php_driver_index *self;
-  php5to7_zval* result;
+  zval* result;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "s",
                             &name, &name_len) == FAILURE) {
@@ -147,14 +145,14 @@ PHP_METHOD(DefaultIndex, option)
   }
 
   self = PHP_DRIVER_GET_INDEX(getThis());
-  if (PHP5TO7_ZVAL_IS_UNDEF(self->options)) {
+  if (Z_ISUNDEF(self->options)) {
     php_driver_index_build_option(self);
   }
 
-  if (PHP5TO7_ZEND_HASH_FIND(PHP5TO7_Z_ARRVAL_MAYBE_P(self->options),
-                         name, name_len + 1,
-                         result)) {
-    RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_DEREF(result), 1, 0);
+  if (CASS_ZEND_HASH_FIND(Z_ARRVAL(self->options),
+                          name, name_len + 1,
+                          result)) {
+    RETURN_ZVAL(result, 1, 0);
   }
   RETURN_FALSE;
 }
@@ -167,30 +165,30 @@ PHP_METHOD(DefaultIndex, options)
     return;
 
   self = PHP_DRIVER_GET_INDEX(getThis());
-  if (PHP5TO7_ZVAL_IS_UNDEF(self->options)) {
+  if (Z_ISUNDEF(self->options)) {
     php_driver_index_build_option(self);
   }
 
-  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->options), 1, 0);
+  RETURN_ZVAL(&(self->options), 1, 0);
 }
 
 PHP_METHOD(DefaultIndex, className)
 {
   php_driver_index *self;
-  php5to7_zval* result;
+  zval* result;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
   self = PHP_DRIVER_GET_INDEX(getThis());
-  if (PHP5TO7_ZVAL_IS_UNDEF(self->options)) {
+  if (Z_ISUNDEF(self->options)) {
     php_driver_index_build_option(self);
   }
 
-  if (PHP5TO7_ZEND_HASH_FIND(PHP5TO7_Z_ARRVAL_MAYBE_P(self->options),
-                         "class_name", sizeof("class_name"),
-                         result)) {
-    RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_DEREF(result), 1, 0);
+  if (CASS_ZEND_HASH_FIND(Z_ARRVAL(self->options),
+                          "class_name", sizeof("class_name"),
+                          result)) {
+    RETURN_ZVAL(result, 1, 0);
   }
   RETURN_FALSE;
 }
@@ -204,13 +202,11 @@ PHP_METHOD(DefaultIndex, isCustom)
     return;
 
   self = PHP_DRIVER_GET_INDEX(getThis());
-  if (PHP5TO7_ZVAL_IS_UNDEF(self->options)) {
+  if (Z_ISUNDEF(self->options)) {
     php_driver_index_build_option(self);
   }
 
-  is_custom =
-      PHP5TO7_ZEND_HASH_EXISTS(PHP5TO7_Z_ARRVAL_MAYBE_P(self->options),
-                               "class_name", sizeof("class_name"));
+  is_custom = zend_hash_str_exists(Z_ARRVAL(self->options),"class_name", strlen("class_name"));
   RETURN_BOOL(is_custom);
 }
 
@@ -235,7 +231,7 @@ static zend_function_entry php_driver_default_index_methods[] = {
 static zend_object_handlers php_driver_default_index_handlers;
 
 static HashTable *
-php_driver_type_default_index_gc(zval *object, php5to7_zval_gc table, int *n)
+php_driver_type_default_index_gc(zval *object, zval **table, int *n)
 {
   *table = NULL;
   *n = 0;
@@ -260,14 +256,14 @@ php_driver_default_index_compare(zval *obj1, zval *obj2)
 }
 
 static void
-php_driver_default_index_free(php5to7_zend_object_free *object)
+php_driver_default_index_free(zend_object *object)
 {
-  php_driver_index *self = PHP5TO7_ZEND_OBJECT_GET(index, object);
+  php_driver_index *self = php_driver_index_object_fetch(object);;
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->name);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->kind);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->target);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->options);
+  CASS_ZVAL_MAYBE_DESTROY(self->name);
+  CASS_ZVAL_MAYBE_DESTROY(self->kind);
+  CASS_ZVAL_MAYBE_DESTROY(self->target);
+  CASS_ZVAL_MAYBE_DESTROY(self->options);
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);
@@ -276,24 +272,24 @@ php_driver_default_index_free(php5to7_zend_object_free *object)
   self->meta = NULL;
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
+
 }
 
-static php5to7_zend_object
+static zend_object *
 php_driver_default_index_new(zend_class_entry *ce)
 {
   php_driver_index *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(index, ce);
+      CASS_ZEND_OBJECT_ECALLOC(index, ce);
 
-  PHP5TO7_ZVAL_UNDEF(self->name);
-  PHP5TO7_ZVAL_UNDEF(self->kind);
-  PHP5TO7_ZVAL_UNDEF(self->target);
-  PHP5TO7_ZVAL_UNDEF(self->options);
+  ZVAL_UNDEF(&(self->name));
+  ZVAL_UNDEF(&(self->kind));
+  ZVAL_UNDEF(&(self->target));
+  ZVAL_UNDEF(&(self->options));
 
   self->schema = NULL;
   self->meta = NULL;
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(index, default_index, self, ce);
+  CASS_ZEND_OBJECT_INIT_EX(index, default_index, self, ce);
 }
 
 void php_driver_define_DefaultIndex()
@@ -303,7 +299,7 @@ void php_driver_define_DefaultIndex()
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\DefaultIndex", php_driver_default_index_methods);
   php_driver_default_index_ce = zend_register_internal_class(&ce);
   zend_class_implements(php_driver_default_index_ce, 1, php_driver_index_ce);
-  php_driver_default_index_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_default_index_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_default_index_ce->create_object = php_driver_default_index_new;
 
   memcpy(&php_driver_default_index_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

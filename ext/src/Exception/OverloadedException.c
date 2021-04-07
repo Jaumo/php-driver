@@ -28,5 +28,5 @@ void php_driver_define_OverloadedException()
   zend_class_entry ce;
 
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Exception\\OverloadedException", OverloadedException_methods);
-  php_driver_overloaded_exception_ce = php5to7_zend_register_internal_class_ex(&ce, php_driver_server_exception_ce);
+  php_driver_overloaded_exception_ce = zend_register_internal_class_ex(&ce, php_driver_server_exception_ce);
 }

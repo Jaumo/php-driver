@@ -28,5 +28,5 @@ void php_driver_define_ValidationException()
   zend_class_entry ce;
 
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Exception\\ValidationException", ValidationException_methods);
-  php_driver_validation_exception_ce = php5to7_zend_register_internal_class_ex(&ce, php_driver_runtime_exception_ce);
+  php_driver_validation_exception_ce = zend_register_internal_class_ex(&ce, php_driver_runtime_exception_ce);
 }

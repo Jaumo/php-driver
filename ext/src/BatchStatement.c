@@ -19,12 +19,12 @@
 
 zend_class_entry *php_driver_batch_statement_ce = NULL;
 
-void php_driver_batch_statement_entry_dtor(php5to7_dtor dest)
+void php_driver_batch_statement_entry_dtor(zval *dest)
 {
   php_driver_batch_statement_entry *batch_statement_entry = Z_PTR_P(dest);
 
   zval_ptr_dtor(&batch_statement_entry->statement);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(batch_statement_entry->arguments);
+  CASS_ZVAL_MAYBE_DESTROY(batch_statement_entry->arguments);
 
   efree(batch_statement_entry);
 }
@@ -83,10 +83,10 @@ PHP_METHOD(BatchStatement, add)
 
   batch_statement_entry = (php_driver_batch_statement_entry *) ecalloc(1, sizeof(php_driver_batch_statement_entry));
 
-  PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(batch_statement_entry->statement), statement);
+  ZVAL_COPY(&(batch_statement_entry->statement), statement);
 
   if (arguments) {
-    PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(batch_statement_entry->arguments), arguments);
+    ZVAL_COPY(&(batch_statement_entry->arguments), arguments);
   }
 
   ZVAL_PTR(&entry, batch_statement_entry);
@@ -128,27 +128,27 @@ php_driver_batch_statement_compare(zval *obj1, zval *obj2)
 }
 
 static void
-php_driver_batch_statement_free(php5to7_zend_object_free *object)
+php_driver_batch_statement_free(zend_object *object)
 {
-  php_driver_statement *self = PHP5TO7_ZEND_OBJECT_GET(statement, object);
+  php_driver_statement *self = php_driver_statement_object_fetch(object);;
 
   zend_hash_destroy(&self->data.batch.statements);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
+
 }
 
-static php5to7_zend_object
+static zend_object *
 php_driver_batch_statement_new(zend_class_entry *ce)
 {
   php_driver_statement *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(statement, ce);
+      CASS_ZEND_OBJECT_ECALLOC(statement, ce);
 
   self->type       = PHP_DRIVER_BATCH_STATEMENT;
   self->data.batch.type = CASS_BATCH_TYPE_LOGGED;
   zend_hash_init(&self->data.batch.statements, 0, NULL, (dtor_func_t) php_driver_batch_statement_entry_dtor, 0);
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(statement, batch_statement, self, ce);
+  CASS_ZEND_OBJECT_INIT_EX(statement, batch_statement, self, ce);
 }
 
 void php_driver_define_BatchStatement()
@@ -158,7 +158,7 @@ void php_driver_define_BatchStatement()
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\BatchStatement", php_driver_batch_statement_methods);
   php_driver_batch_statement_ce = zend_register_internal_class(&ce);
   zend_class_implements(php_driver_batch_statement_ce, 1, php_driver_statement_ce);
-  php_driver_batch_statement_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_batch_statement_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_batch_statement_ce->create_object = php_driver_batch_statement_new;
 
   memcpy(&php_driver_batch_statement_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

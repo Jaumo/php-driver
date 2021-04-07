@@ -31,13 +31,13 @@ free_session(void *session)
 PHP_METHOD(DefaultCluster, connect)
 {
   char *keyspace = NULL;
-  php5to7_size keyspace_len;
+  size_t keyspace_len;
   zval *timeout = NULL;
   php_driver_cluster *self = NULL;
   php_driver_session *session = NULL;
   CassFuture *future = NULL;
   char *hash_key;
-  php5to7_size hash_key_len = 0;
+  size_t hash_key_len = 0;
   php_driver_psession *psession;
 
 
@@ -54,18 +54,18 @@ PHP_METHOD(DefaultCluster, connect)
   session->default_page_size   = self->default_page_size;
   session->persist             = self->persist;
 
-  if (!PHP5TO7_ZVAL_IS_UNDEF(session->default_timeout)) {
-    PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(session->default_timeout),
-                      PHP5TO7_ZVAL_MAYBE_P(self->default_timeout));
+  if (!Z_ISUNDEF(session->default_timeout)) {
+    ZVAL_COPY(&(session->default_timeout),
+                      &(self->default_timeout));
   }
 
   if (session->persist) {
-    php5to7_zend_resource_le *le;
+    zval *le;
 
     hash_key_len = spprintf(&hash_key, 0, "%s:session:%s",
                             self->hash_key, SAFE_STR(keyspace));
 
-    if (PHP5TO7_ZEND_HASH_FIND(&EG(persistent_list), hash_key, hash_key_len + 1, le) &&
+    if (CASS_ZEND_HASH_FIND(&EG(persistent_list), hash_key, hash_key_len + 1, le) &&
         Z_RES_P(le)->type == php_le_php_driver_session()) {
       psession = (php_driver_psession *) Z_RES_P(le)->ptr;
       session->session = php_driver_add_ref(psession->session);
@@ -74,7 +74,7 @@ PHP_METHOD(DefaultCluster, connect)
   }
 
   if (future == NULL) {
-    php5to7_zend_resource_le resource;
+    zval resource;
 
     session->session = php_driver_new_peref(cass_session_new(), free_session, 1);
 
@@ -93,7 +93,7 @@ PHP_METHOD(DefaultCluster, connect)
       psession->future  = future;
 
       ZVAL_NEW_PERSISTENT_RES(&resource, 0, psession, php_le_php_driver_session());
-      PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, &resource, sizeof(php5to7_zend_resource_le));
+      zend_hash_str_update(&EG(persistent_list), hash_key, hash_key_len, &resource);
       PHP_DRIVER_G(persistent_sessions)++;
     }
   }
@@ -110,7 +110,7 @@ PHP_METHOD(DefaultCluster, connect)
 
   if (php_driver_future_is_error(future) == FAILURE) {
     if (session->persist) {
-      (void) PHP5TO7_ZEND_HASH_DEL(&EG(persistent_list), hash_key, hash_key_len + 1);
+      zend_hash_str_del(&EG(persistent_list), hash_key, strlen(hash_key));
       efree(hash_key);
     } else {
       cass_future_free(future);
@@ -126,9 +126,9 @@ PHP_METHOD(DefaultCluster, connect)
 PHP_METHOD(DefaultCluster, connectAsync)
 {
   char *hash_key = NULL;
-  php5to7_size hash_key_len = 0;
+  size_t hash_key_len = 0;
   char *keyspace = NULL;
-  php5to7_size keyspace_len;
+  size_t keyspace_len;
   php_driver_cluster *self = NULL;
   php_driver_future_session *future = NULL;
 
@@ -144,7 +144,7 @@ PHP_METHOD(DefaultCluster, connectAsync)
   future->persist = self->persist;
 
   if (self->persist) {
-    php5to7_zend_resource_le *le;
+    zval *le;
 
     hash_key_len = spprintf(&hash_key, 0, "%s:session:%s",
                             self->hash_key, SAFE_STR(keyspace));
@@ -152,7 +152,7 @@ PHP_METHOD(DefaultCluster, connectAsync)
     future->hash_key     = hash_key;
     future->hash_key_len = hash_key_len;
 
-    if (PHP5TO7_ZEND_HASH_FIND(&EG(persistent_list), hash_key, hash_key_len + 1, le) &&
+    if (CASS_ZEND_HASH_FIND(&EG(persistent_list), hash_key, hash_key_len + 1, le) &&
         Z_RES_P(le)->type == php_le_php_driver_session()) {
       php_driver_psession *psession = (php_driver_psession *) Z_RES_P(le)->ptr;
       future->session = php_driver_add_ref(psession->session);
@@ -173,14 +173,14 @@ PHP_METHOD(DefaultCluster, connectAsync)
   }
 
   if (self->persist) {
-    php5to7_zend_resource_le resource;
+    zval resource;
     php_driver_psession *psession =
       (php_driver_psession *) pecalloc(1, sizeof(php_driver_psession), 1);
     psession->session = php_driver_add_ref(future->session);
     psession->future  = future->future;
 
     ZVAL_NEW_PERSISTENT_RES(&resource, 0, psession, php_le_php_driver_session());
-    PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, &resource, sizeof(php5to7_zend_resource_le));
+    zend_hash_str_update(&EG(persistent_list), hash_key, hash_key_len, &resource);
     PHP_DRIVER_G(persistent_sessions)++;
 
   }
@@ -221,9 +221,9 @@ php_driver_default_cluster_compare(zval *obj1, zval *obj2)
 }
 
 static void
-php_driver_default_cluster_free(php5to7_zend_object_free *object)
+php_driver_default_cluster_free(zend_object *object)
 {
-  php_driver_cluster *self = PHP5TO7_ZEND_OBJECT_GET(cluster, object);
+  php_driver_cluster *self = php_driver_cluster_object_fetch(object);;
 
   if (self->persist) {
     efree(self->hash_key);
@@ -233,17 +233,17 @@ php_driver_default_cluster_free(php5to7_zend_object_free *object)
     }
   }
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->default_timeout);
+  CASS_ZVAL_MAYBE_DESTROY(self->default_timeout);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
+
 }
 
-static php5to7_zend_object
+static zend_object *
 php_driver_default_cluster_new(zend_class_entry *ce)
 {
   php_driver_cluster *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(cluster, ce);
+      CASS_ZEND_OBJECT_ECALLOC(cluster, ce);
 
   self->cluster             = NULL;
   self->default_consistency = PHP_DRIVER_DEFAULT_CONSISTENCY;
@@ -251,9 +251,9 @@ php_driver_default_cluster_new(zend_class_entry *ce)
   self->persist             = 0;
   self->hash_key            = NULL;
 
-  PHP5TO7_ZVAL_UNDEF(self->default_timeout);
+  ZVAL_UNDEF(&(self->default_timeout));
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(cluster, default_cluster, self, ce);
+  CASS_ZEND_OBJECT_INIT_EX(cluster, default_cluster, self, ce);
 }
 
 void php_driver_define_DefaultCluster()
@@ -263,7 +263,7 @@ void php_driver_define_DefaultCluster()
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\DefaultCluster", php_driver_default_cluster_methods);
   php_driver_default_cluster_ce = zend_register_internal_class(&ce);
   zend_class_implements(php_driver_default_cluster_ce, 1, php_driver_cluster_ce);
-  php_driver_default_cluster_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_default_cluster_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_default_cluster_ce->create_object = php_driver_default_cluster_new;
 
   memcpy(&php_driver_default_cluster_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

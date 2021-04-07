@@ -19,7 +19,7 @@
 
 #include "php_driver.h"
 
-php5to7_zval
+zval
 php_driver_create_materialized_view(php_driver_ref* schema,
                                        const CassMaterializedViewMeta *meta);
 

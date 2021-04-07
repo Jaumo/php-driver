@@ -34,9 +34,7 @@ int php_driver_type_user_type_add(php_driver_type *type,
                                             sub_type->data_type) != CASS_OK) {
     return 0;
   }
-  PHP5TO7_ZEND_HASH_ADD(&type->data.udt.types,
-                        name, name_length + 1,
-                        zsub_type, sizeof(zval *));
+  zend_hash_str_add(&type->data.udt.types, name, name_length, zsub_type);
   return 1;
 }
 
@@ -51,7 +49,7 @@ PHP_METHOD(TypeUserType, __construct)
 PHP_METHOD(TypeUserType, withName)
 {
   char *name;
-  php5to7_size name_len;
+  size_t name_len;
   php_driver_type *self;
   php_driver_type *user_type;
 
@@ -71,7 +69,7 @@ PHP_METHOD(TypeUserType, withName)
     user_type->data.udt.keyspace = estrdup(self->data.udt.keyspace);
   }
 
-  PHP5TO7_ZEND_HASH_ZVAL_COPY(&user_type->data.udt.types, &self->data.udt.types);
+  CASS_ZEND_HASH_ZVAL_COPY(&user_type->data.udt.types, &self->data.udt.types);
 }
 
 PHP_METHOD(TypeUserType, name)
@@ -87,13 +85,13 @@ PHP_METHOD(TypeUserType, name)
   if (!self->data.udt.type_name)
     RETURN_NULL();
 
-  PHP5TO7_RETVAL_STRING(self->data.udt.type_name);
+  RETVAL_STRING(self->data.udt.type_name);
 }
 
 PHP_METHOD(TypeUserType, withKeyspace)
 {
   char *keyspace;
-  php5to7_size keyspace_len;
+  size_t keyspace_len;
   php_driver_type *self;
   php_driver_type *user_type;
 
@@ -113,7 +111,7 @@ PHP_METHOD(TypeUserType, withKeyspace)
 
   user_type->data.udt.keyspace = estrndup(keyspace, keyspace_len);
 
-  PHP5TO7_ZEND_HASH_ZVAL_COPY(&user_type->data.udt.types, &self->data.udt.types);
+  CASS_ZEND_HASH_ZVAL_COPY(&user_type->data.udt.types, &self->data.udt.types);
 }
 
 PHP_METHOD(TypeUserType, keyspace)
@@ -129,7 +127,7 @@ PHP_METHOD(TypeUserType, keyspace)
   if (!self->data.udt.keyspace)
     RETURN_NULL();
 
-  PHP5TO7_RETVAL_STRING(self->data.udt.keyspace);
+  RETVAL_STRING(self->data.udt.keyspace);
 }
 
 PHP_METHOD(TypeUserType, types)
@@ -143,13 +141,13 @@ PHP_METHOD(TypeUserType, types)
   self = PHP_DRIVER_GET_TYPE(getThis());
 
   array_init(return_value);
-  PHP5TO7_ZEND_HASH_ZVAL_COPY(Z_ARRVAL_P(return_value), &self->data.udt.types);
+  CASS_ZEND_HASH_ZVAL_COPY(Z_ARRVAL_P(return_value), &self->data.udt.types);
 }
 
 PHP_METHOD(TypeUserType, __toString)
 {
   php_driver_type *self;
-  smart_str string = PHP5TO7_SMART_STR_INIT;
+  smart_str string = {0};
 
   if (zend_parse_parameters_none() == FAILURE) {
     return;
@@ -160,7 +158,7 @@ PHP_METHOD(TypeUserType, __toString)
   php_driver_type_string(self, &string);
   smart_str_0(&string);
 
-  PHP5TO7_RETVAL_STRING(PHP5TO7_SMART_STR_VAL(string));
+  RETVAL_STRING(CASS_SMART_STR_VAL(string));
   smart_str_free(&string);
 }
 
@@ -168,7 +166,7 @@ PHP_METHOD(TypeUserType, create)
 {
   php_driver_type *self;
   php_driver_user_type_value *user_type_value;
-  php5to7_zval_args args = NULL;
+    zval *args = NULL;
   int argc = 0, i;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "*",
@@ -181,7 +179,7 @@ PHP_METHOD(TypeUserType, create)
   object_init_ex(return_value, php_driver_user_type_value_ce);
   user_type_value = PHP_DRIVER_GET_USER_TYPE_VALUE(return_value);
 
-  PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(user_type_value->type), getThis());
+  ZVAL_COPY(&(user_type_value->type), getThis());
 
   if (argc > 0) {
     if (argc % 2 == 1) {
@@ -190,32 +188,32 @@ PHP_METHOD(TypeUserType, create)
                               "from an even number of name/value pairs, where each odd " \
                               "argument is a name and each even argument is a value, " \
                               "e.g user_type(name, value, name, value, name, value)");
-      PHP5TO7_MAYBE_EFREE(args);
+
       return;
     }
 
     for (i = 0; i < argc; i += 2) {
-      zval *name = PHP5TO7_ZVAL_ARG(args[i]);
-      zval *value = PHP5TO7_ZVAL_ARG(args[i + 1]);
-      php5to7_zval *sub_type;
+      zval *name = &(args[i]);
+      zval *value = &(args[i + 1]);
+      zval *sub_type;
       if (Z_TYPE_P(name) != IS_STRING) {
         zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
                                 "Argument %d is not a string", i + 1);
-        PHP5TO7_MAYBE_EFREE(args);
+
         return;
       }
-      if (!PHP5TO7_ZEND_HASH_FIND(&self->data.udt.types,
-                                  Z_STRVAL_P(name), Z_STRLEN_P(name) + 1,
-                                  sub_type)) {
+      if (!CASS_ZEND_HASH_FIND(&self->data.udt.types,
+                               Z_STRVAL_P(name), Z_STRLEN_P(name) + 1,
+                               sub_type)) {
         zend_throw_exception_ex(php_driver_invalid_argument_exception_ce,
                                 0,
                                 "Invalid name '%s'", Z_STRVAL_P(name));
-        PHP5TO7_MAYBE_EFREE(args);
+
         return;
       }
       if (!php_driver_validate_object(value,
-                                      PHP5TO7_ZVAL_MAYBE_DEREF(sub_type))) {
-        PHP5TO7_MAYBE_EFREE(args);
+                                      sub_type)) {
+
         return;
       }
       php_driver_user_type_value_set(user_type_value,
@@ -223,7 +221,7 @@ PHP_METHOD(TypeUserType, create)
                                      value);
     }
 
-    PHP5TO7_MAYBE_EFREE(args);
+
   }
 }
 
@@ -257,7 +255,7 @@ static zend_function_entry php_driver_type_user_type_methods[] = {
 static zend_object_handlers php_driver_type_user_type_handlers;
 
 static HashTable *
-php_driver_type_user_type_gc(zval *object, php5to7_zval_gc table, int *n)
+php_driver_type_user_type_gc(zval *object, zval **table, int *n)
 {
   *table = NULL;
   *n = 0;
@@ -267,17 +265,15 @@ php_driver_type_user_type_gc(zval *object, php5to7_zval_gc table, int *n)
 static HashTable *
 php_driver_type_user_type_properties(zval *object)
 {
-  php5to7_zval types;
+  zval types;
 
   php_driver_type *self  = PHP_DRIVER_GET_TYPE(object);
   HashTable      *props = zend_std_get_properties(object);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(types);
-  array_init(PHP5TO7_ZVAL_MAYBE_P(types));
-  PHP5TO7_ZEND_HASH_ZVAL_COPY(PHP5TO7_Z_ARRVAL_MAYBE_P(types), &self->data.udt.types);
-  PHP5TO7_ZEND_HASH_UPDATE(props,
-                           "types", sizeof("types"),
-                           PHP5TO7_ZVAL_MAYBE_P(types), sizeof(zval));
+
+  array_init(&(types));
+  CASS_ZEND_HASH_ZVAL_COPY(Z_ARRVAL(types), &self->data.udt.types);
+  zend_hash_str_update(props, "types", strlen("types"), &(types));
 
   return props;
 }
@@ -292,9 +288,9 @@ php_driver_type_user_type_compare(zval *obj1, zval *obj2)
 }
 
 static void
-php_driver_type_user_type_free(php5to7_zend_object_free *object)
+php_driver_type_user_type_free(zend_object *object)
 {
-  php_driver_type *self = PHP5TO7_ZEND_OBJECT_GET(type, object);
+  php_driver_type *self = php_driver_type_object_fetch(object);;
 
   if (self->data_type) cass_data_type_free(self->data_type);
   if (self->data.udt.keyspace) efree(self->data.udt.keyspace);
@@ -302,20 +298,20 @@ php_driver_type_user_type_free(php5to7_zend_object_free *object)
   zend_hash_destroy(&self->data.udt.types);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
+
 }
 
-static php5to7_zend_object
+static zend_object *
 php_driver_type_user_type_new(zend_class_entry *ce)
 {
-  php_driver_type *self = PHP5TO7_ZEND_OBJECT_ECALLOC(type, ce);
+  php_driver_type *self = CASS_ZEND_OBJECT_ECALLOC(type, ce);
 
   self->type = CASS_VALUE_TYPE_UDT;
   self->data_type = NULL;
   self->data.udt.keyspace = self->data.udt.type_name = NULL;
   zend_hash_init(&self->data.udt.types, 0, NULL, ZVAL_PTR_DTOR, 0);
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(type, type_user_type, self, ce);
+  CASS_ZEND_OBJECT_INIT_EX(type, type_user_type, self, ce);
 }
 
 void php_driver_define_TypeUserType()
@@ -323,13 +319,13 @@ void php_driver_define_TypeUserType()
   zend_class_entry ce;
 
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Type\\UserType", php_driver_type_user_type_methods);
-  php_driver_type_user_type_ce = php5to7_zend_register_internal_class_ex(&ce, php_driver_type_ce);
+  php_driver_type_user_type_ce = zend_register_internal_class_ex(&ce, php_driver_type_ce);
   memcpy(&php_driver_type_user_type_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
   php_driver_type_user_type_handlers.get_properties  = php_driver_type_user_type_properties;
 #if PHP_VERSION_ID >= 50400
   php_driver_type_user_type_handlers.get_gc          = php_driver_type_user_type_gc;
 #endif
   php_driver_type_user_type_handlers.compare_objects = php_driver_type_user_type_compare;
-  php_driver_type_user_type_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_type_user_type_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_type_user_type_ce->create_object = php_driver_type_user_type_new;
 }

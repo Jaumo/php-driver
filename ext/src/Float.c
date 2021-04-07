@@ -27,7 +27,7 @@ to_string(zval *result, php_driver_numeric *flt)
 {
   char *string;
   spprintf(&string, 0, "%.*F", (int) EG(precision), flt->data.floating.value);
-  PHP5TO7_ZVAL_STRING(result, string);
+  ZVAL_STRING(result, string);
   efree(string);
   return SUCCESS;
 }
@@ -87,8 +87,8 @@ PHP_METHOD(Float, __toString)
 /* {{{ Float::type() */
 PHP_METHOD(Float, type)
 {
-  php5to7_zval type = php_driver_type_scalar(CASS_VALUE_TYPE_FLOAT);
-  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(type), 1, 1);
+  zval type = php_driver_type_scalar(CASS_VALUE_TYPE_FLOAT);
+  RETURN_ZVAL(&(type), 1, 1);
 }
 /* }}} */
 
@@ -372,7 +372,7 @@ static zend_function_entry php_driver_float_methods[] = {
 static php_driver_value_handlers php_driver_float_handlers;
 
 static HashTable *
-php_driver_float_gc(zval *object, php5to7_zval_gc table, int *n)
+php_driver_float_gc(zval *object, zval **table, int *n)
 {
   *table = NULL;
   *n = 0;
@@ -382,18 +382,18 @@ php_driver_float_gc(zval *object, php5to7_zval_gc table, int *n)
 static HashTable *
 php_driver_float_properties(zval *object)
 {
-  php5to7_zval type;
-  php5to7_zval value;
+  zval type;
+  zval value;
 
   php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(object);
   HashTable         *props = zend_std_get_properties(object);
 
   type = php_driver_type_scalar(CASS_VALUE_TYPE_FLOAT);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), PHP5TO7_ZVAL_MAYBE_P(type), sizeof(zval));
+  zend_hash_str_update(props, "type", strlen("type"), &(type));
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(value);
-  to_string(PHP5TO7_ZVAL_MAYBE_P(value), self);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "value", sizeof("value"), PHP5TO7_ZVAL_MAYBE_P(value), sizeof(zval));
+
+  to_string(&(value), self);
+  zend_hash_str_update(props, "value", strlen("value"), &(value));
 
   return props;
 }
@@ -458,21 +458,21 @@ php_driver_float_cast(zval *object, zval *retval, int type)
 }
 
 static void
-php_driver_float_free(php5to7_zend_object_free *object)
+php_driver_float_free(zend_object *object)
 {
-  php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_GET(numeric, object);
+  php_driver_numeric *self = php_driver_numeric_object_fetch(object);;
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
+
 }
 
-static php5to7_zend_object
+static zend_object *
 php_driver_float_new(zend_class_entry *ce)
 {
   php_driver_numeric *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(numeric, ce);
+      CASS_ZEND_OBJECT_ECALLOC(numeric, ce);
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(numeric, float, self, ce);
+  CASS_ZEND_OBJECT_INIT_EX(numeric, float, self, ce);
 }
 
 void php_driver_define_Float()
@@ -482,7 +482,7 @@ void php_driver_define_Float()
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Float", php_driver_float_methods);
   php_driver_float_ce = zend_register_internal_class(&ce);
   zend_class_implements(php_driver_float_ce, 2, php_driver_value_ce, php_driver_numeric_ce);
-  php_driver_float_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_float_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_float_ce->create_object = php_driver_float_new;
 
   memcpy(&php_driver_float_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

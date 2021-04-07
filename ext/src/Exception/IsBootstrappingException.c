@@ -28,5 +28,5 @@ void php_driver_define_IsBootstrappingException()
   zend_class_entry ce;
 
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Exception\\IsBootstrappingException", IsBootstrappingException_methods);
-  php_driver_is_bootstrapping_exception_ce = php5to7_zend_register_internal_class_ex(&ce, php_driver_server_exception_ce);
+  php_driver_is_bootstrapping_exception_ce = zend_register_internal_class_ex(&ce, php_driver_server_exception_ce);
 }

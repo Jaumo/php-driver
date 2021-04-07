@@ -103,7 +103,7 @@ php_le_php_driver_cluster()
   return le_php_driver_cluster_res;
 }
 static void
-php_driver_cluster_dtor(php5to7_zend_resource rsrc)
+php_driver_cluster_dtor(zend_resource *rsrc)
 {
   CassCluster *cluster = (CassCluster*) rsrc->ptr;
 
@@ -121,7 +121,7 @@ php_le_php_driver_session()
   return le_php_driver_session_res;
 }
 static void
-php_driver_session_dtor(php5to7_zend_resource rsrc)
+php_driver_session_dtor(zend_resource *rsrc)
 {
   php_driver_psession *psession = (php_driver_psession*) rsrc->ptr;
 
@@ -340,17 +340,17 @@ PHP_INI_MH(OnUpdateLogLevel)
   /* If TSRM is enabled then the last thread to update this wins */
 
   if (new_value) {
-    if (PHP5TO7_STRCMP(new_value, "CRITICAL") == 0) {
+    if (strcmp(new_value->val, "CRITICAL") == 0) {
       cass_log_set_level(CASS_LOG_DISABLED);
-    } else if (PHP5TO7_STRCMP(new_value, "ERROR") == 0) {
+    } else if (strcmp(new_value->val, "ERROR") == 0) {
       cass_log_set_level(CASS_LOG_ERROR);
-    } else if (PHP5TO7_STRCMP(new_value, "WARN") == 0) {
+    } else if (strcmp(new_value->val, "WARN") == 0) {
       cass_log_set_level(CASS_LOG_WARN);
-    } else if (PHP5TO7_STRCMP(new_value, "INFO") == 0) {
+    } else if (strcmp(new_value->val, "INFO") == 0) {
       cass_log_set_level(CASS_LOG_INFO);
-    } else if (PHP5TO7_STRCMP(new_value, "DEBUG") == 0) {
+    } else if (strcmp(new_value->val, "DEBUG") == 0) {
       cass_log_set_level(CASS_LOG_DEBUG);
-    } else if (PHP5TO7_STRCMP(new_value, "TRACE") == 0) {
+    } else if (strcmp(new_value->val, "TRACE") == 0) {
       cass_log_set_level(CASS_LOG_TRACE);
     } else {
       php_error_docref(NULL, E_NOTICE,
@@ -373,15 +373,15 @@ PHP_INI_MH(OnUpdateLog)
     log_location = NULL;
   }
   if (new_value) {
-    if (PHP5TO7_STRCMP(new_value, "syslog") != 0) {
+    if (strcmp(new_value->val, "syslog") != 0) {
       char realpath[MAXPATHLEN + 1];
-      if (VCWD_REALPATH(PHP5TO7_STRVAL(new_value), realpath)) {
+      if (VCWD_REALPATH(new_value->val, realpath)) {
         log_location = strdup(realpath);
       } else {
-        log_location = strdup(PHP5TO7_STRVAL(new_value));
+        log_location = strdup(new_value->val);
       }
     } else {
-      log_location = strdup(PHP5TO7_STRVAL(new_value));
+      log_location = strdup(new_value->val);
     }
   }
   uv_rwlock_wrunlock(&log_lock);
@@ -398,23 +398,23 @@ static PHP_GINIT_FUNCTION(php_driver)
   php_driver_globals->uuid_gen_pid        = 0;
   php_driver_globals->persistent_clusters = 0;
   php_driver_globals->persistent_sessions = 0;
-  PHP5TO7_ZVAL_UNDEF(php_driver_globals->type_varchar);
-  PHP5TO7_ZVAL_UNDEF(php_driver_globals->type_text);
-  PHP5TO7_ZVAL_UNDEF(php_driver_globals->type_blob);
-  PHP5TO7_ZVAL_UNDEF(php_driver_globals->type_ascii);
-  PHP5TO7_ZVAL_UNDEF(php_driver_globals->type_bigint);
-  PHP5TO7_ZVAL_UNDEF(php_driver_globals->type_smallint);
-  PHP5TO7_ZVAL_UNDEF(php_driver_globals->type_counter);
-  PHP5TO7_ZVAL_UNDEF(php_driver_globals->type_int);
-  PHP5TO7_ZVAL_UNDEF(php_driver_globals->type_varint);
-  PHP5TO7_ZVAL_UNDEF(php_driver_globals->type_boolean);
-  PHP5TO7_ZVAL_UNDEF(php_driver_globals->type_decimal);
-  PHP5TO7_ZVAL_UNDEF(php_driver_globals->type_double);
-  PHP5TO7_ZVAL_UNDEF(php_driver_globals->type_float);
-  PHP5TO7_ZVAL_UNDEF(php_driver_globals->type_inet);
-  PHP5TO7_ZVAL_UNDEF(php_driver_globals->type_timestamp);
-  PHP5TO7_ZVAL_UNDEF(php_driver_globals->type_uuid);
-  PHP5TO7_ZVAL_UNDEF(php_driver_globals->type_timeuuid);
+  ZVAL_UNDEF(&(php_driver_globals->type_varchar));
+  ZVAL_UNDEF(&(php_driver_globals->type_text));
+  ZVAL_UNDEF(&(php_driver_globals->type_blob));
+  ZVAL_UNDEF(&(php_driver_globals->type_ascii));
+  ZVAL_UNDEF(&(php_driver_globals->type_bigint));
+  ZVAL_UNDEF(&(php_driver_globals->type_smallint));
+  ZVAL_UNDEF(&(php_driver_globals->type_counter));
+  ZVAL_UNDEF(&(php_driver_globals->type_int));
+  ZVAL_UNDEF(&(php_driver_globals->type_varint));
+  ZVAL_UNDEF(&(php_driver_globals->type_boolean));
+  ZVAL_UNDEF(&(php_driver_globals->type_decimal));
+  ZVAL_UNDEF(&(php_driver_globals->type_double));
+  ZVAL_UNDEF(&(php_driver_globals->type_float));
+  ZVAL_UNDEF(&(php_driver_globals->type_inet));
+  ZVAL_UNDEF(&(php_driver_globals->type_timestamp));
+  ZVAL_UNDEF(&(php_driver_globals->type_uuid));
+  ZVAL_UNDEF(&(php_driver_globals->type_timeuuid));
 }
 
 static PHP_GSHUTDOWN_FUNCTION(php_driver)
@@ -559,7 +559,7 @@ PHP_MSHUTDOWN_FUNCTION(php_driver)
 PHP_RINIT_FUNCTION(php_driver)
 {
 #define XX_SCALAR(name, value) \
-  PHP5TO7_ZVAL_UNDEF(PHP_DRIVER_G(type_##name));
+  ZVAL_UNDEF(&(PHP_DRIVER_G(type_##name)));
 
   PHP_DRIVER_SCALAR_TYPES_MAP(XX_SCALAR)
 #undef XX_SCALAR
@@ -570,7 +570,7 @@ PHP_RINIT_FUNCTION(php_driver)
 PHP_RSHUTDOWN_FUNCTION(php_driver)
 {
 #define XX_SCALAR(name, value) \
-  PHP5TO7_ZVAL_MAYBE_DESTROY(PHP_DRIVER_G(type_##name));
+  CASS_ZVAL_MAYBE_DESTROY(PHP_DRIVER_G(type_##name));
 
   PHP_DRIVER_SCALAR_TYPES_MAP(XX_SCALAR)
 #undef XX_SCALAR

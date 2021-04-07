@@ -131,7 +131,7 @@ PHP_DRIVER_BEGIN_OBJECT_TYPE(duration)
 PHP_DRIVER_END_OBJECT_TYPE(duration)
 
 PHP_DRIVER_BEGIN_OBJECT_TYPE(collection)
-  php5to7_zval type;
+  zval type;
   HashTable values;
   unsigned hashv;
   int dirty;
@@ -140,7 +140,7 @@ PHP_DRIVER_END_OBJECT_TYPE(collection)
 typedef struct php_driver_map_entry_ php_driver_map_entry;
 
 PHP_DRIVER_BEGIN_OBJECT_TYPE(map)
-  php5to7_zval type;
+  zval type;
   php_driver_map_entry *entries;
   unsigned hashv;
   int dirty;
@@ -151,7 +151,7 @@ PHP_DRIVER_END_OBJECT_TYPE(map)
 typedef struct php_driver_set_entry_ php_driver_set_entry;
 
 PHP_DRIVER_BEGIN_OBJECT_TYPE(set)
-  php5to7_zval type;
+  zval type;
   php_driver_set_entry *entries;
   unsigned hashv;
   int dirty;
@@ -161,7 +161,7 @@ PHP_DRIVER_BEGIN_OBJECT_TYPE(set)
 PHP_DRIVER_END_OBJECT_TYPE(set)
 
 PHP_DRIVER_BEGIN_OBJECT_TYPE(tuple)
-  php5to7_zval type;
+  zval type;
   HashTable values;
   HashPosition pos;
   unsigned hashv;
@@ -169,7 +169,7 @@ PHP_DRIVER_BEGIN_OBJECT_TYPE(tuple)
 PHP_DRIVER_END_OBJECT_TYPE(tuple)
 
 PHP_DRIVER_BEGIN_OBJECT_TYPE(user_type_value)
-  php5to7_zval type;
+  zval type;
   HashTable values;
   HashPosition pos;
   unsigned hashv;
@@ -181,7 +181,7 @@ PHP_DRIVER_BEGIN_OBJECT_TYPE(cluster)
   CassCluster *cluster;
   long default_consistency;
   int default_page_size;
-  php5to7_zval default_timeout;
+  zval default_timeout;
   cass_bool_t persist;
   char *hash_key;
   int hash_key_len;
@@ -210,8 +210,8 @@ PHP_DRIVER_BEGIN_OBJECT_TYPE(statement)
 PHP_DRIVER_END_OBJECT_TYPE(statement)
 
 typedef struct {
-  php5to7_zval statement;
-  php5to7_zval arguments;
+  zval statement;
+  zval arguments;
 } php_driver_batch_statement_entry;
 
 PHP_DRIVER_BEGIN_OBJECT_TYPE(execution_options)
@@ -220,9 +220,9 @@ PHP_DRIVER_BEGIN_OBJECT_TYPE(execution_options)
   int page_size;
   char *paging_state_token;
   size_t paging_state_token_size;
-  php5to7_zval timeout;
-  php5to7_zval arguments;
-  php5to7_zval retry_policy;
+  zval timeout;
+  zval arguments;
+  zval retry_policy;
   cass_int64_t timestamp;
 PHP_DRIVER_END_OBJECT_TYPE(execution_options)
 
@@ -243,17 +243,17 @@ typedef struct {
 PHP_DRIVER_BEGIN_OBJECT_TYPE(rows)
   php_driver_ref *statement;
   php_driver_ref *session;
-  php5to7_zval rows;
-  php5to7_zval next_rows;
+  zval rows;
+  zval next_rows;
   php_driver_ref *result;
   php_driver_ref *next_result;
-  php5to7_zval future_next_page;
+  zval future_next_page;
 PHP_DRIVER_END_OBJECT_TYPE(rows)
 
 PHP_DRIVER_BEGIN_OBJECT_TYPE(future_rows)
   php_driver_ref *statement;
   php_driver_ref *session;
-  php5to7_zval rows;
+  zval rows;
   php_driver_ref *result;
   CassFuture *future;
 PHP_DRIVER_END_OBJECT_TYPE(future_rows)
@@ -270,10 +270,10 @@ PHP_DRIVER_BEGIN_OBJECT_TYPE(cluster_builder)
   char *password;
   unsigned int connect_timeout;
   unsigned int request_timeout;
-  php5to7_zval ssl_options;
+  zval ssl_options;
   long default_consistency;
   int default_page_size;
-  php5to7_zval default_timeout;
+  zval default_timeout;
   cass_bool_t persist;
   int protocol_version;
   int io_threads;
@@ -284,8 +284,8 @@ PHP_DRIVER_BEGIN_OBJECT_TYPE(cluster_builder)
   cass_bool_t enable_tcp_nodelay;
   cass_bool_t enable_tcp_keepalive;
   unsigned int tcp_keepalive_delay;
-  php5to7_zval retry_policy;
-  php5to7_zval timestamp_gen;
+  zval retry_policy;
+  zval timestamp_gen;
   cass_bool_t enable_schema;
   char *blacklist_hosts;
   char *whitelist_hosts;
@@ -298,11 +298,11 @@ PHP_DRIVER_END_OBJECT_TYPE(cluster_builder)
 
 PHP_DRIVER_BEGIN_OBJECT_TYPE(future_prepared_statement)
   CassFuture *future;
-  php5to7_zval prepared_statement;
+  zval prepared_statement;
 PHP_DRIVER_END_OBJECT_TYPE(future_prepared_statement)
 
 PHP_DRIVER_BEGIN_OBJECT_TYPE(future_value)
-  php5to7_zval value;
+  zval value;
 PHP_DRIVER_END_OBJECT_TYPE(future_value)
 
 PHP_DRIVER_BEGIN_OBJECT_TYPE(future_close)
@@ -312,7 +312,7 @@ PHP_DRIVER_END_OBJECT_TYPE(future_close)
 PHP_DRIVER_BEGIN_OBJECT_TYPE(future_session)
   CassFuture *future;
   php_driver_ref *session;
-  php5to7_zval default_session;
+  zval default_session;
   cass_bool_t persist;
   char *hash_key;
   int hash_key_len;
@@ -329,7 +329,7 @@ PHP_DRIVER_BEGIN_OBJECT_TYPE(session)
   php_driver_ref *session;
   long default_consistency;
   int default_page_size;
-  php5to7_zval default_timeout;
+  zval default_timeout;
   cass_bool_t persist;
 PHP_DRIVER_END_OBJECT_TYPE(session)
 
@@ -356,31 +356,31 @@ PHP_DRIVER_BEGIN_OBJECT_TYPE(keyspace)
 PHP_DRIVER_END_OBJECT_TYPE(keyspace)
 
 PHP_DRIVER_BEGIN_OBJECT_TYPE(table)
-  php5to7_zval name;
-  php5to7_zval options;
-  php5to7_zval partition_key;
-  php5to7_zval primary_key;
-  php5to7_zval clustering_key;
-  php5to7_zval clustering_order;
+  zval name;
+  zval options;
+  zval partition_key;
+  zval primary_key;
+  zval clustering_key;
+  zval clustering_order;
   php_driver_ref *schema;
   const CassTableMeta *meta;
 PHP_DRIVER_END_OBJECT_TYPE(table)
 
 PHP_DRIVER_BEGIN_OBJECT_TYPE(materialized_view)
-  php5to7_zval name;
-  php5to7_zval options;
-  php5to7_zval partition_key;
-  php5to7_zval primary_key;
-  php5to7_zval clustering_key;
-  php5to7_zval clustering_order;
-  php5to7_zval base_table;
+  zval name;
+  zval options;
+  zval partition_key;
+  zval primary_key;
+  zval clustering_key;
+  zval clustering_order;
+  zval base_table;
   php_driver_ref *schema;
   const CassMaterializedViewMeta *meta;
 PHP_DRIVER_END_OBJECT_TYPE(materialized_view)
 
 PHP_DRIVER_BEGIN_OBJECT_TYPE(column)
-  php5to7_zval name;
-  php5to7_zval type;
+  zval name;
+  zval type;
   int reversed;
   int frozen;
   php_driver_ref *schema;
@@ -388,34 +388,34 @@ PHP_DRIVER_BEGIN_OBJECT_TYPE(column)
 PHP_DRIVER_END_OBJECT_TYPE(column)
 
 PHP_DRIVER_BEGIN_OBJECT_TYPE(index)
-  php5to7_zval name;
-  php5to7_zval kind;
-  php5to7_zval target;
-  php5to7_zval options;
+  zval name;
+  zval kind;
+  zval target;
+  zval options;
   php_driver_ref *schema;
   const CassIndexMeta *meta;
 PHP_DRIVER_END_OBJECT_TYPE(index)
 
 PHP_DRIVER_BEGIN_OBJECT_TYPE(function)
-  php5to7_zval simple_name;
-  php5to7_zval arguments;
-  php5to7_zval return_type;
-  php5to7_zval signature;
-  php5to7_zval language;
-  php5to7_zval body;
+  zval simple_name;
+  zval arguments;
+  zval return_type;
+  zval signature;
+  zval language;
+  zval body;
   php_driver_ref *schema;
   const CassFunctionMeta *meta;
 PHP_DRIVER_END_OBJECT_TYPE(function)
 
 PHP_DRIVER_BEGIN_OBJECT_TYPE(aggregate)
-  php5to7_zval simple_name;
-  php5to7_zval argument_types;
-  php5to7_zval state_function;
-  php5to7_zval final_function;
-  php5to7_zval initial_condition;
-  php5to7_zval state_type;
-  php5to7_zval return_type;
-  php5to7_zval signature;
+  zval simple_name;
+  zval argument_types;
+  zval state_function;
+  zval final_function;
+  zval initial_condition;
+  zval state_type;
+  zval return_type;
+  zval signature;
   php_driver_ref *schema;
   const CassAggregateMeta *meta;
 PHP_DRIVER_END_OBJECT_TYPE(aggregate)
@@ -425,14 +425,14 @@ PHP_DRIVER_BEGIN_OBJECT_TYPE(type)
   CassDataType *data_type;
   union {
     struct {
-      php5to7_zval value_type;
+      zval value_type;
     } collection;
     struct {
-      php5to7_zval value_type;
+      zval value_type;
     } set;
     struct {
-      php5to7_zval key_type;
-      php5to7_zval value_type;
+      zval key_type;
+      zval value_type;
     } map;
     struct {
       char *class_name;

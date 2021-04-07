@@ -60,8 +60,8 @@ PHP_METHOD(Date, __construct)
 /* {{{ Date::type() */
 PHP_METHOD(Date, type)
 {
-  php5to7_zval type = php_driver_type_scalar(CASS_VALUE_TYPE_DATE);
-  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(type), 1, 1);
+  zval type = php_driver_type_scalar(CASS_VALUE_TYPE_DATE);
+  RETURN_ZVAL(&(type), 1, 1);
 }
 /* }}} */
 
@@ -80,7 +80,7 @@ PHP_METHOD(Date, toDateTime)
   php_driver_date *self;
   zval *ztime = NULL;
   php_driver_time* time_obj = NULL;
-  php5to7_zval datetime;
+  zval datetime;
   php_date_obj *datetime_obj = NULL;
   char *str;
   int str_len;
@@ -94,8 +94,8 @@ PHP_METHOD(Date, toDateTime)
   }
   self = PHP_DRIVER_GET_DATE(getThis());
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(datetime);
-  php_date_instantiate(php_date_get_date_ce(), PHP5TO7_ZVAL_MAYBE_P(datetime));
+
+  php_date_instantiate(php_date_get_date_ce(), &(datetime));
 
   datetime_obj = php_date_obj_from_obj(Z_OBJ(datetime));
 
@@ -105,7 +105,7 @@ PHP_METHOD(Date, toDateTime)
   php_date_initialize(datetime_obj, str, str_len, "U", NULL, 0);
   efree(str);
 
-  RETVAL_ZVAL(PHP5TO7_ZVAL_MAYBE_P(datetime), 0, 1);
+  RETVAL_ZVAL(&(datetime), 0, 1);
 }
 /* }}} */
 
@@ -114,23 +114,23 @@ PHP_METHOD(Date, fromDateTime)
 {
   php_driver_date *self;
   zval *zdatetime;
-  php5to7_zval retval;
+  zval retval;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &zdatetime) == FAILURE) {
     return;
   }
 
-  zend_call_method_with_0_params(PHP5TO7_ZVAL_MAYBE_ADDR_OF(zdatetime),
+  zend_call_method_with_0_params(zdatetime,
                                  php_date_get_date_ce(),
                                  NULL,
                                  "gettimestamp",
                                  &retval);
 
-  if (!PHP5TO7_ZVAL_IS_UNDEF(retval) &&
-      Z_TYPE_P(PHP5TO7_ZVAL_MAYBE_P(retval)) == IS_LONG) {
+  if (!Z_ISUNDEF(retval) &&
+      Z_TYPE_P(&(retval)) == IS_LONG) {
     object_init_ex(return_value, php_driver_date_ce);
     self = PHP_DRIVER_GET_DATE(return_value);
-    self->date = cass_date_from_epoch(PHP5TO7_Z_LVAL_MAYBE_P(retval));
+    self->date = cass_date_from_epoch(Z_LVAL(retval));
     zval_ptr_dtor(&retval);
     return;
   }
@@ -151,7 +151,7 @@ PHP_METHOD(Date, __toString)
   self = PHP_DRIVER_GET_DATE(getThis());
 
   spprintf(&ret, 0, PHP_DRIVER_NAMESPACE "\\Date(seconds=%" PRId64 ")", cass_date_time_to_epoch(self->date, 0));
-  PHP5TO7_RETVAL_STRING(ret);
+  RETVAL_STRING(ret);
   efree(ret);
 }
 /* }}} */
@@ -184,7 +184,7 @@ static zend_function_entry php_driver_date_methods[] = {
 static php_driver_value_handlers php_driver_date_handlers;
 
 static HashTable *
-php_driver_date_gc(zval *object, php5to7_zval_gc table, int *n)
+php_driver_date_gc(zval *object, zval **table, int *n)
 {
   *table = NULL;
   *n = 0;
@@ -194,18 +194,18 @@ php_driver_date_gc(zval *object, php5to7_zval_gc table, int *n)
 static HashTable *
 php_driver_date_properties(zval *object)
 {
-  php5to7_zval type;
-  php5to7_zval seconds;
+  zval type;
+  zval seconds;
 
   php_driver_date *self = PHP_DRIVER_GET_DATE(object);
   HashTable *props = zend_std_get_properties(object);
 
   type = php_driver_type_scalar(CASS_VALUE_TYPE_DATE);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), PHP5TO7_ZVAL_MAYBE_P(type), sizeof(zval));
+  zend_hash_str_update(props, "type", strlen("type"), &(type));
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(seconds);
-  ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(seconds), cass_date_time_to_epoch(self->date, 0));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "seconds", sizeof("seconds"), PHP5TO7_ZVAL_MAYBE_P(seconds), sizeof(zval));
+
+  ZVAL_LONG(&(seconds), cass_date_time_to_epoch(self->date, 0));
+  zend_hash_str_update(props, "seconds", strlen("seconds"), &(seconds));
 
   return props;
 }
@@ -232,23 +232,23 @@ php_driver_date_hash_value(zval *obj)
 }
 
 static void
-php_driver_date_free(php5to7_zend_object_free *object)
+php_driver_date_free(zend_object *object)
 {
-  php_driver_date *self = PHP5TO7_ZEND_OBJECT_GET(date, object);
+  php_driver_date *self = php_driver_date_object_fetch(object);;
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
+
 }
 
-static php5to7_zend_object
+static zend_object *
 php_driver_date_new(zend_class_entry *ce)
 {
   php_driver_date *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(date, ce);
+      CASS_ZEND_OBJECT_ECALLOC(date, ce);
 
   self->date = 0;
 
-  PHP5TO7_ZEND_OBJECT_INIT(date, self, ce);
+  CASS_ZEND_OBJECT_INIT(date, self, ce);
 }
 
 void php_driver_define_Date()
@@ -264,7 +264,7 @@ void php_driver_define_Date()
   php_driver_date_handlers.std.get_gc          = php_driver_date_gc;
 #endif
   php_driver_date_handlers.std.compare_objects = php_driver_date_compare;
-  php_driver_date_ce->ce_flags |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_date_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_date_ce->create_object = php_driver_date_new;
 
   php_driver_date_handlers.hash_value = php_driver_date_hash_value;

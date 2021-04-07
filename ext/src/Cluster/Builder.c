@@ -36,8 +36,8 @@ PHP_METHOD(ClusterBuilder, build)
   cluster->default_consistency = self->default_consistency;
   cluster->default_page_size   = self->default_page_size;
 
-  PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(cluster->default_timeout),
-                    PHP5TO7_ZVAL_MAYBE_P(self->default_timeout));
+  ZVAL_COPY(&(cluster->default_timeout),
+                    &(self->default_timeout));
 
   if (self->persist) {
     cluster->hash_key_len = spprintf(&cluster->hash_key, 0,
@@ -58,9 +58,9 @@ PHP_METHOD(ClusterBuilder, build)
                                      SAFE_STR(self->blacklist_hosts), SAFE_STR(self->blacklist_dcs));
 
     if (self->persist) {
-      php5to7_zend_resource_le *le;
+      zval *le;
 
-      if (PHP5TO7_ZEND_HASH_FIND(&EG(persistent_list), cluster->hash_key, cluster->hash_key_len + 1, le)) {
+      if (CASS_ZEND_HASH_FIND(&EG(persistent_list), cluster->hash_key, cluster->hash_key_len + 1, le)) {
         if (Z_TYPE_P(le) == php_le_php_driver_cluster()) {
           cluster->cluster =  (CassCluster*) Z_RES_P(le)->ptr;
           return; /* Return cached version */
@@ -105,8 +105,8 @@ PHP_METHOD(ClusterBuilder, build)
   cass_cluster_set_connect_timeout(cluster->cluster, self->connect_timeout);
   cass_cluster_set_request_timeout(cluster->cluster, self->request_timeout);
 
-  if (!PHP5TO7_ZVAL_IS_UNDEF(self->ssl_options)) {
-    php_driver_ssl *options = PHP_DRIVER_GET_SSL(PHP5TO7_ZVAL_MAYBE_P(self->ssl_options));
+  if (!Z_ISUNDEF(self->ssl_options)) {
+    php_driver_ssl *options = PHP_DRIVER_GET_SSL(&(self->ssl_options));
     cass_cluster_set_ssl(cluster->cluster, options->ssl);
   }
 
@@ -135,26 +135,24 @@ PHP_METHOD(ClusterBuilder, build)
   ASSERT_SUCCESS(cass_cluster_set_use_randomized_contact_points(cluster->cluster, self->enable_randomized_contact_points));
   cass_cluster_set_connection_heartbeat_interval(cluster->cluster, self->connection_heartbeat_interval);
 
-  if (!PHP5TO7_ZVAL_IS_UNDEF(self->timestamp_gen)) {
+  if (!Z_ISUNDEF(self->timestamp_gen)) {
     php_driver_timestamp_gen *timestamp_gen =
-        PHP_DRIVER_GET_TIMESTAMP_GEN(PHP5TO7_ZVAL_MAYBE_P(self->timestamp_gen));
+        PHP_DRIVER_GET_TIMESTAMP_GEN(&(self->timestamp_gen));
     cass_cluster_set_timestamp_gen(cluster->cluster, timestamp_gen->gen);
   }
 
-  if (!PHP5TO7_ZVAL_IS_UNDEF(self->retry_policy)) {
+  if (!Z_ISUNDEF(self->retry_policy)) {
     php_driver_retry_policy *retry_policy =
-        PHP_DRIVER_GET_RETRY_POLICY(PHP5TO7_ZVAL_MAYBE_P(self->retry_policy));
+        PHP_DRIVER_GET_RETRY_POLICY(&(self->retry_policy));
     cass_cluster_set_retry_policy(cluster->cluster, retry_policy->policy);
   }
 
   if (self->persist) {
-    php5to7_zend_resource_le resource;
+    zval resource;
 
     ZVAL_NEW_PERSISTENT_RES(&resource, 0, cluster->cluster, php_le_php_driver_cluster());
 
-    PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list),
-                             cluster->hash_key, cluster->hash_key_len + 1,
-                             &resource, sizeof(php5to7_zend_resource_le));
+    zend_hash_str_update(&EG(persistent_list), cluster->hash_key, cluster->hash_key_len, &resource);
     PHP_DRIVER_G(persistent_clusters)++;
   }
 }
@@ -212,12 +210,12 @@ PHP_METHOD(ClusterBuilder, withDefaultTimeout)
   self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
 
   if (Z_TYPE_P(timeout) == IS_NULL) {
-    PHP5TO7_ZVAL_MAYBE_DESTROY(self->default_timeout);
-    PHP5TO7_ZVAL_UNDEF(self->default_timeout);
+    CASS_ZVAL_MAYBE_DESTROY(self->default_timeout);
+    ZVAL_UNDEF(&(self->default_timeout));
   } else if ((Z_TYPE_P(timeout) == IS_LONG && Z_LVAL_P(timeout) > 0) ||
              (Z_TYPE_P(timeout) == IS_DOUBLE && Z_LVAL_P(timeout) > 0)) {
-    PHP5TO7_ZVAL_MAYBE_DESTROY(self->default_timeout);
-    PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(self->default_timeout), timeout);
+    CASS_ZVAL_MAYBE_DESTROY(self->default_timeout);
+    ZVAL_COPY(&(self->default_timeout), timeout);
   } else {
     INVALID_ARGUMENT(timeout, "a number of seconds greater than zero or null");
   }
@@ -228,9 +226,9 @@ PHP_METHOD(ClusterBuilder, withDefaultTimeout)
 PHP_METHOD(ClusterBuilder, withContactPoints)
 {
   zval *host = NULL;
-  php5to7_zval_args args = NULL;
+  zval *args = NULL;
   int argc = 0, i;
-  smart_str contactPoints = PHP5TO7_SMART_STR_INIT;
+  smart_str contactPoints = {0};
   php_driver_cluster_builder *self;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "+", &args, &argc) == FAILURE) {
@@ -240,12 +238,12 @@ PHP_METHOD(ClusterBuilder, withContactPoints)
   self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
 
   for (i = 0; i < argc; i++) {
-    host = PHP5TO7_ZVAL_ARG(args[i]);
+    host = &(args[i]);
 
     if (Z_TYPE_P(host) != IS_STRING) {
       smart_str_free(&contactPoints);
       throw_invalid_argument(host, "host", "a string ip address or hostname");
-      PHP5TO7_MAYBE_EFREE(args);
+
       return;
     }
 
@@ -256,7 +254,7 @@ PHP_METHOD(ClusterBuilder, withContactPoints)
     smart_str_appendl(&contactPoints, Z_STRVAL_P(host), Z_STRLEN_P(host));
   }
 
-  PHP5TO7_MAYBE_EFREE(args);
+
   smart_str_0(&contactPoints);
 
   efree(self->contact_points);
@@ -311,7 +309,7 @@ PHP_METHOD(ClusterBuilder, withRoundRobinLoadBalancingPolicy)
 PHP_METHOD(ClusterBuilder, withDatacenterAwareRoundRobinLoadBalancingPolicy)
 {
   char *local_dc;
-  php5to7_size local_dc_len;
+  size_t local_dc_len;
   zval *hostPerRemoteDatacenter = NULL;
   zend_bool allow_remote_dcs_for_local_cl;
   php_driver_cluster_builder *self;
@@ -344,9 +342,9 @@ PHP_METHOD(ClusterBuilder, withDatacenterAwareRoundRobinLoadBalancingPolicy)
 PHP_METHOD(ClusterBuilder, withBlackListHosts)
 {
   zval *hosts = NULL;
-  php5to7_zval_args args = NULL;
+  zval *args = NULL;
   int argc = 0, i;
-  smart_str blacklist_hosts = PHP5TO7_SMART_STR_INIT;
+  smart_str blacklist_hosts = {0};
   php_driver_cluster_builder *self;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "+", &args, &argc) == FAILURE) {
@@ -356,12 +354,12 @@ PHP_METHOD(ClusterBuilder, withBlackListHosts)
   self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
 
   for (i = 0; i < argc; i++) {
-    hosts = PHP5TO7_ZVAL_ARG(args[i]);
+    hosts = &(args[i]);
 
     if (Z_TYPE_P(hosts) != IS_STRING) {
       smart_str_free(&blacklist_hosts);
       throw_invalid_argument(hosts, "hosts", "a string ip address or hostname");
-      PHP5TO7_MAYBE_EFREE(args);
+
       return;
     }
 
@@ -372,7 +370,7 @@ PHP_METHOD(ClusterBuilder, withBlackListHosts)
     smart_str_appendl(&blacklist_hosts, Z_STRVAL_P(hosts), Z_STRLEN_P(hosts));
   }
 
-  PHP5TO7_MAYBE_EFREE(args);
+
   smart_str_0(&blacklist_hosts);
 
   efree(self->blacklist_hosts);
@@ -385,9 +383,9 @@ PHP_METHOD(ClusterBuilder, withBlackListHosts)
 PHP_METHOD(ClusterBuilder, withWhiteListHosts)
 {
   zval *hosts = NULL;
-  php5to7_zval_args args = NULL;
+  zval *args = NULL;
   int argc = 0, i;
-  smart_str whitelist_hosts = PHP5TO7_SMART_STR_INIT;
+  smart_str whitelist_hosts = {0};
   php_driver_cluster_builder *self;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "+", &args, &argc) == FAILURE) {
@@ -397,12 +395,12 @@ PHP_METHOD(ClusterBuilder, withWhiteListHosts)
   self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
 
   for (i = 0; i < argc; i++) {
-    hosts = PHP5TO7_ZVAL_ARG(args[i]);
+    hosts = &(args[i]);
 
     if (Z_TYPE_P(hosts) != IS_STRING) {
       smart_str_free(&whitelist_hosts);
       throw_invalid_argument(hosts, "hosts", "a string ip address or hostname");
-      PHP5TO7_MAYBE_EFREE(args);
+
       return;
     }
 
@@ -413,7 +411,7 @@ PHP_METHOD(ClusterBuilder, withWhiteListHosts)
     smart_str_appendl(&whitelist_hosts, Z_STRVAL_P(hosts), Z_STRLEN_P(hosts));
   }
 
-  PHP5TO7_MAYBE_EFREE(args);
+
   smart_str_0(&whitelist_hosts);
 
   efree(self->whitelist_hosts);
@@ -426,9 +424,9 @@ PHP_METHOD(ClusterBuilder, withWhiteListHosts)
 PHP_METHOD(ClusterBuilder, withBlackListDCs)
 {
   zval *dcs = NULL;
-  php5to7_zval_args args = NULL;
+  zval *args = NULL;
   int argc = 0, i;
-  smart_str blacklist_dcs = PHP5TO7_SMART_STR_INIT;
+  smart_str blacklist_dcs = {0};
   php_driver_cluster_builder *self;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "+", &args, &argc) == FAILURE) {
@@ -438,12 +436,12 @@ PHP_METHOD(ClusterBuilder, withBlackListDCs)
   self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
 
   for (i = 0; i < argc; i++) {
-    dcs = PHP5TO7_ZVAL_ARG(args[i]);
+    dcs = &(args[i]);
 
     if (Z_TYPE_P(dcs) != IS_STRING) {
       smart_str_free(&blacklist_dcs);
       throw_invalid_argument(dcs, "dcs", "a string");
-      PHP5TO7_MAYBE_EFREE(args);
+
       return;
     }
 
@@ -454,7 +452,7 @@ PHP_METHOD(ClusterBuilder, withBlackListDCs)
     smart_str_appendl(&blacklist_dcs, Z_STRVAL_P(dcs), Z_STRLEN_P(dcs));
   }
 
-  PHP5TO7_MAYBE_EFREE(args);
+
   smart_str_0(&blacklist_dcs);
 
   efree(self->blacklist_dcs);
@@ -467,9 +465,9 @@ PHP_METHOD(ClusterBuilder, withBlackListDCs)
 PHP_METHOD(ClusterBuilder, withWhiteListDCs)
 {
   zval *dcs = NULL;
-  php5to7_zval_args args = NULL;
+  zval *args = NULL;
   int argc = 0, i;
-  smart_str whitelist_dcs = PHP5TO7_SMART_STR_INIT;
+  smart_str whitelist_dcs = {0};
   php_driver_cluster_builder *self;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "+", &args, &argc) == FAILURE) {
@@ -479,12 +477,12 @@ PHP_METHOD(ClusterBuilder, withWhiteListDCs)
   self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
 
   for (i = 0; i < argc; i++) {
-    dcs = PHP5TO7_ZVAL_ARG(args[i]);
+    dcs = &(args[i]);
 
     if (Z_TYPE_P(dcs) != IS_STRING) {
       smart_str_free(&whitelist_dcs);
       throw_invalid_argument(dcs, "dcs", "a string");
-      PHP5TO7_MAYBE_EFREE(args);
+
       return;
     }
 
@@ -495,7 +493,6 @@ PHP_METHOD(ClusterBuilder, withWhiteListDCs)
     smart_str_appendl(&whitelist_dcs, Z_STRVAL_P(dcs), Z_STRLEN_P(dcs));
   }
 
-  PHP5TO7_MAYBE_EFREE(args);
   smart_str_0(&whitelist_dcs);
 
   efree(self->whitelist_dcs);
@@ -603,10 +600,10 @@ PHP_METHOD(ClusterBuilder, withSSL)
 
   self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
 
-  if (!PHP5TO7_ZVAL_IS_UNDEF(self->ssl_options))
+  if (!Z_ISUNDEF(self->ssl_options))
     zval_ptr_dtor(&self->ssl_options);
 
-  PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(self->ssl_options), ssl_options);
+  ZVAL_COPY(&(self->ssl_options), ssl_options);
 
   RETURN_ZVAL(getThis(), 1, 0);
 }
@@ -804,10 +801,10 @@ PHP_METHOD(ClusterBuilder, withRetryPolicy)
 
   self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
 
-  if (!PHP5TO7_ZVAL_IS_UNDEF(self->retry_policy))
+  if (!Z_ISUNDEF(self->retry_policy))
     zval_ptr_dtor(&self->retry_policy);
 
-  PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(self->retry_policy), retry_policy);
+  ZVAL_COPY(&(self->retry_policy), retry_policy);
 
   RETURN_ZVAL(getThis(), 1, 0);
 }
@@ -824,10 +821,10 @@ PHP_METHOD(ClusterBuilder, withTimestampGenerator)
 
   self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
 
-  if (!PHP5TO7_ZVAL_IS_UNDEF(self->timestamp_gen))
+  if (!Z_ISUNDEF(self->timestamp_gen))
     zval_ptr_dtor(&self->timestamp_gen);
 
-  PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(self->timestamp_gen), timestamp_gen);
+  ZVAL_COPY(&(self->timestamp_gen), timestamp_gen);
 
   RETURN_ZVAL(getThis(), 1, 0);
 }
@@ -1029,7 +1026,7 @@ static zend_function_entry php_driver_cluster_builder_methods[] = {
 static zend_object_handlers php_driver_cluster_builder_handlers;
 
 static HashTable*
-php_driver_cluster_builder_gc(zval *object, php5to7_zval_gc table, int *n)
+php_driver_cluster_builder_gc(zval *object, zval **table, int *n)
 {
   *table = NULL;
   *n = 0;
@@ -1039,249 +1036,216 @@ php_driver_cluster_builder_gc(zval *object, php5to7_zval_gc table, int *n)
 static HashTable*
 php_driver_cluster_builder_properties(zval *object)
 {
-  php5to7_zval contactPoints;
-  php5to7_zval loadBalancingPolicy;
-  php5to7_zval localDatacenter;
-  php5to7_zval hostPerRemoteDatacenter;
-  php5to7_zval useRemoteDatacenterForLocalConsistencies;
-  php5to7_zval useTokenAwareRouting;
-  php5to7_zval username;
-  php5to7_zval password;
-  php5to7_zval connectTimeout;
-  php5to7_zval requestTimeout;
-  php5to7_zval sslOptions;
-  php5to7_zval defaultConsistency;
-  php5to7_zval defaultPageSize;
-  php5to7_zval defaultTimeout;
-  php5to7_zval usePersistentSessions;
-  php5to7_zval protocolVersion;
-  php5to7_zval ioThreads;
-  php5to7_zval coreConnectionPerHost;
-  php5to7_zval maxConnectionsPerHost;
-  php5to7_zval reconnectInterval;
-  php5to7_zval latencyAwareRouting;
-  php5to7_zval tcpNodelay;
-  php5to7_zval tcpKeepalive;
-  php5to7_zval retryPolicy;
-  php5to7_zval blacklistHosts;
-  php5to7_zval whitelistHosts;
-  php5to7_zval blacklistDCs;
-  php5to7_zval whitelistDCs;
-  php5to7_zval timestampGen;
-  php5to7_zval schemaMetadata;
-  php5to7_zval hostnameResolution;
-  php5to7_zval randomizedContactPoints;
-  php5to7_zval connectionHeartbeatInterval;
+  zval contactPoints;
+  zval loadBalancingPolicy;
+  zval localDatacenter;
+  zval hostPerRemoteDatacenter;
+  zval useRemoteDatacenterForLocalConsistencies;
+  zval useTokenAwareRouting;
+  zval username;
+  zval password;
+  zval connectTimeout;
+  zval requestTimeout;
+  zval sslOptions;
+  zval defaultConsistency;
+  zval defaultPageSize;
+  zval defaultTimeout;
+  zval usePersistentSessions;
+  zval protocolVersion;
+  zval ioThreads;
+  zval coreConnectionPerHost;
+  zval maxConnectionsPerHost;
+  zval reconnectInterval;
+  zval latencyAwareRouting;
+  zval tcpNodelay;
+  zval tcpKeepalive;
+  zval retryPolicy;
+  zval blacklistHosts;
+  zval whitelistHosts;
+  zval blacklistDCs;
+  zval whitelistDCs;
+  zval timestampGen;
+  zval schemaMetadata;
+  zval hostnameResolution;
+  zval randomizedContactPoints;
+  zval connectionHeartbeatInterval;
 
   php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(object);
   HashTable *props = zend_std_get_properties(object);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(contactPoints);
-  PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(contactPoints), self->contact_points);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(loadBalancingPolicy);
-  ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(loadBalancingPolicy), self->load_balancing_policy);
+  ZVAL_STRING(&(contactPoints), self->contact_points);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(localDatacenter);
-  PHP5TO7_ZVAL_MAYBE_MAKE(hostPerRemoteDatacenter);
-  PHP5TO7_ZVAL_MAYBE_MAKE(useRemoteDatacenterForLocalConsistencies);
+
+  ZVAL_LONG(&(loadBalancingPolicy), self->load_balancing_policy);
+
+
+
+
   if (self->load_balancing_policy == LOAD_BALANCING_DC_AWARE_ROUND_ROBIN) {
-    PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(localDatacenter), self->local_dc);
-    ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(hostPerRemoteDatacenter), self->used_hosts_per_remote_dc);
-    ZVAL_BOOL(PHP5TO7_ZVAL_MAYBE_P(useRemoteDatacenterForLocalConsistencies), self->allow_remote_dcs_for_local_cl);
+    ZVAL_STRING(&(localDatacenter), self->local_dc);
+    ZVAL_LONG(&(hostPerRemoteDatacenter), self->used_hosts_per_remote_dc);
+    ZVAL_BOOL(&(useRemoteDatacenterForLocalConsistencies), self->allow_remote_dcs_for_local_cl);
   } else {
-    ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(localDatacenter));
-    ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(hostPerRemoteDatacenter));
-    ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(useRemoteDatacenterForLocalConsistencies));
+    ZVAL_NULL(&(localDatacenter));
+    ZVAL_NULL(&(hostPerRemoteDatacenter));
+    ZVAL_NULL(&(useRemoteDatacenterForLocalConsistencies));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(useTokenAwareRouting);
-  ZVAL_BOOL(PHP5TO7_ZVAL_MAYBE_P(useTokenAwareRouting), self->use_token_aware_routing);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(username);
-  PHP5TO7_ZVAL_MAYBE_MAKE(password);
+  ZVAL_BOOL(&(useTokenAwareRouting), self->use_token_aware_routing);
+
+
+
   if (self->username) {
-    PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(username), self->username);
-    PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(password), self->password);
+    ZVAL_STRING(&(username), self->username);
+    ZVAL_STRING(&(password), self->password);
   } else {
-    ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(username));
-    ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(password));
+    ZVAL_NULL(&(username));
+    ZVAL_NULL(&(password));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(connectTimeout);
-  ZVAL_DOUBLE(PHP5TO7_ZVAL_MAYBE_P(connectTimeout), (double) self->connect_timeout / 1000);
-  PHP5TO7_ZVAL_MAYBE_MAKE(requestTimeout);
-  ZVAL_DOUBLE(PHP5TO7_ZVAL_MAYBE_P(requestTimeout), (double) self->request_timeout / 1000);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(sslOptions);
-  if (!PHP5TO7_ZVAL_IS_UNDEF(self->ssl_options)) {
-    PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(sslOptions), PHP5TO7_ZVAL_MAYBE_P(self->ssl_options));
+  ZVAL_DOUBLE(&(connectTimeout), (double) self->connect_timeout / 1000);
+
+  ZVAL_DOUBLE(&(requestTimeout), (double) self->request_timeout / 1000);
+
+
+  if (!Z_ISUNDEF(self->ssl_options)) {
+    ZVAL_COPY(&(sslOptions), &(self->ssl_options));
   } else {
-    ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(sslOptions));
+    ZVAL_NULL(&(sslOptions));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(defaultConsistency);
-  ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(defaultConsistency), self->default_consistency);
-  PHP5TO7_ZVAL_MAYBE_MAKE(defaultPageSize);
-  ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(defaultPageSize), self->default_page_size);
-  PHP5TO7_ZVAL_MAYBE_MAKE(defaultTimeout);
-  if (!PHP5TO7_ZVAL_IS_UNDEF(self->default_timeout)) {
-    ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(defaultTimeout), PHP5TO7_Z_LVAL_MAYBE_P(self->default_timeout));
+
+  ZVAL_LONG(&(defaultConsistency), self->default_consistency);
+
+  ZVAL_LONG(&(defaultPageSize), self->default_page_size);
+
+  if (!Z_ISUNDEF(self->default_timeout)) {
+    ZVAL_LONG(&(defaultTimeout), Z_LVAL(self->default_timeout));
   } else {
-    ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(defaultTimeout));
+    ZVAL_NULL(&(defaultTimeout));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(usePersistentSessions);
-  ZVAL_BOOL(PHP5TO7_ZVAL_MAYBE_P(usePersistentSessions), self->persist);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(protocolVersion);
-  ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(protocolVersion), self->protocol_version);
+  ZVAL_BOOL(&(usePersistentSessions), self->persist);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(ioThreads);
-  ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(ioThreads), self->io_threads);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(coreConnectionPerHost);
-  ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(coreConnectionPerHost), self->core_connections_per_host);
+  ZVAL_LONG(&(protocolVersion), self->protocol_version);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(maxConnectionsPerHost);
-  ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(maxConnectionsPerHost), self->max_connections_per_host);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(reconnectInterval);
-  ZVAL_DOUBLE(PHP5TO7_ZVAL_MAYBE_P(reconnectInterval), (double) self->reconnect_interval / 1000);
+  ZVAL_LONG(&(ioThreads), self->io_threads);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(latencyAwareRouting);
-  ZVAL_BOOL(PHP5TO7_ZVAL_MAYBE_P(latencyAwareRouting), self->enable_latency_aware_routing);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(tcpNodelay);
-  ZVAL_BOOL(PHP5TO7_ZVAL_MAYBE_P(tcpNodelay), self->enable_tcp_nodelay);
+  ZVAL_LONG(&(coreConnectionPerHost), self->core_connections_per_host);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(tcpKeepalive);
+
+  ZVAL_LONG(&(maxConnectionsPerHost), self->max_connections_per_host);
+
+
+  ZVAL_DOUBLE(&(reconnectInterval), (double) self->reconnect_interval / 1000);
+
+
+  ZVAL_BOOL(&(latencyAwareRouting), self->enable_latency_aware_routing);
+
+
+  ZVAL_BOOL(&(tcpNodelay), self->enable_tcp_nodelay);
+
+
   if (self->enable_tcp_keepalive) {
-    ZVAL_DOUBLE(PHP5TO7_ZVAL_MAYBE_P(tcpKeepalive), (double) self->tcp_keepalive_delay / 1000);
+    ZVAL_DOUBLE(&(tcpKeepalive), (double) self->tcp_keepalive_delay / 1000);
   } else {
-    ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(tcpKeepalive));
+    ZVAL_NULL(&(tcpKeepalive));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(retryPolicy);
-  if (!PHP5TO7_ZVAL_IS_UNDEF(self->retry_policy)) {
-    PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(retryPolicy), PHP5TO7_ZVAL_MAYBE_P(self->retry_policy));
+
+  if (!Z_ISUNDEF(self->retry_policy)) {
+    ZVAL_COPY(&(retryPolicy), &(self->retry_policy));
   } else {
-    ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(retryPolicy));
+    ZVAL_NULL(&(retryPolicy));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(blacklistHosts);
+
   if (self->blacklist_hosts) {
-    PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(blacklistHosts), self->blacklist_hosts);
+    ZVAL_STRING(&(blacklistHosts), self->blacklist_hosts);
   } else {
-    ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(blacklistHosts));
+    ZVAL_NULL(&(blacklistHosts));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(whitelistHosts);
+
   if (self->whitelist_hosts) {
-    PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(whitelistHosts), self->whitelist_hosts);
+    ZVAL_STRING(&(whitelistHosts), self->whitelist_hosts);
   } else {
-    ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(whitelistHosts));
+    ZVAL_NULL(&(whitelistHosts));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(blacklistDCs);
+
   if (self->blacklist_dcs) {
-    PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(blacklistDCs), self->blacklist_dcs);
+    ZVAL_STRING(&(blacklistDCs), self->blacklist_dcs);
   } else {
-    ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(blacklistDCs));
+    ZVAL_NULL(&(blacklistDCs));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(whitelistDCs);
+
   if (self->whitelist_dcs) {
-    PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(whitelistDCs), self->whitelist_dcs);
+    ZVAL_STRING(&(whitelistDCs), self->whitelist_dcs);
   } else {
-    ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(whitelistDCs));
+    ZVAL_NULL(&(whitelistDCs));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(timestampGen);
-  if (!PHP5TO7_ZVAL_IS_UNDEF(self->timestamp_gen)) {
-    PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(timestampGen), PHP5TO7_ZVAL_MAYBE_P(self->timestamp_gen));
+
+  if (!Z_ISUNDEF(self->timestamp_gen)) {
+    ZVAL_COPY(&(timestampGen), &(self->timestamp_gen));
   } else {
-    ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(timestampGen));
+    ZVAL_NULL(&(timestampGen));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(schemaMetadata);
-  ZVAL_BOOL(PHP5TO7_ZVAL_MAYBE_P(schemaMetadata), self->enable_schema);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(hostnameResolution);
-  ZVAL_BOOL(PHP5TO7_ZVAL_MAYBE_P(hostnameResolution), self->enable_hostname_resolution);
+  ZVAL_BOOL(&(schemaMetadata), self->enable_schema);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(randomizedContactPoints);
-  ZVAL_BOOL(PHP5TO7_ZVAL_MAYBE_P(randomizedContactPoints), self->enable_randomized_contact_points);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(connectionHeartbeatInterval);
-  ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(connectionHeartbeatInterval), self->connection_heartbeat_interval);
+  ZVAL_BOOL(&(hostnameResolution), self->enable_hostname_resolution);
 
-  PHP5TO7_ZEND_HASH_UPDATE(props, "contactPoints", sizeof("contactPoints"),
-                           PHP5TO7_ZVAL_MAYBE_P(contactPoints), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "loadBalancingPolicy", sizeof("loadBalancingPolicy"),
-                           PHP5TO7_ZVAL_MAYBE_P(loadBalancingPolicy), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "localDatacenter", sizeof("localDatacenter"),
-                           PHP5TO7_ZVAL_MAYBE_P(localDatacenter), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "hostPerRemoteDatacenter", sizeof("hostPerRemoteDatacenter"),
-                           PHP5TO7_ZVAL_MAYBE_P(hostPerRemoteDatacenter), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "useRemoteDatacenterForLocalConsistencies", sizeof("useRemoteDatacenterForLocalConsistencies"),
-                           PHP5TO7_ZVAL_MAYBE_P(useRemoteDatacenterForLocalConsistencies), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "useTokenAwareRouting", sizeof("useTokenAwareRouting"),
-                           PHP5TO7_ZVAL_MAYBE_P(useTokenAwareRouting), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "username", sizeof("username"),
-                           PHP5TO7_ZVAL_MAYBE_P(username), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "password", sizeof("password"),
-                           PHP5TO7_ZVAL_MAYBE_P(password), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "connectTimeout", sizeof("connectTimeout"),
-                           PHP5TO7_ZVAL_MAYBE_P(connectTimeout), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "requestTimeout", sizeof("requestTimeout"),
-                           PHP5TO7_ZVAL_MAYBE_P(requestTimeout), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "sslOptions", sizeof("sslOptions"),
-                           PHP5TO7_ZVAL_MAYBE_P(sslOptions), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "defaultConsistency", sizeof("defaultConsistency"),
-                           PHP5TO7_ZVAL_MAYBE_P(defaultConsistency), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "defaultPageSize", sizeof("defaultPageSize"),
-                           PHP5TO7_ZVAL_MAYBE_P(defaultPageSize), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "defaultTimeout", sizeof("defaultTimeout"),
-                           PHP5TO7_ZVAL_MAYBE_P(defaultTimeout), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "usePersistentSessions", sizeof("usePersistentSessions"),
-                           PHP5TO7_ZVAL_MAYBE_P(usePersistentSessions), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "protocolVersion", sizeof("protocolVersion"),
-                           PHP5TO7_ZVAL_MAYBE_P(protocolVersion), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "ioThreads", sizeof("ioThreads"),
-                           PHP5TO7_ZVAL_MAYBE_P(ioThreads), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "coreConnectionPerHost", sizeof("coreConnectionPerHost"),
-                           PHP5TO7_ZVAL_MAYBE_P(coreConnectionPerHost), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "maxConnectionsPerHost", sizeof("maxConnectionsPerHost"),
-                           PHP5TO7_ZVAL_MAYBE_P(maxConnectionsPerHost), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "reconnectInterval", sizeof("reconnectInterval"),
-                           PHP5TO7_ZVAL_MAYBE_P(reconnectInterval), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "latencyAwareRouting", sizeof("latencyAwareRouting"),
-                           PHP5TO7_ZVAL_MAYBE_P(latencyAwareRouting), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "tcpNodelay", sizeof("tcpNodelay"),
-                           PHP5TO7_ZVAL_MAYBE_P(tcpNodelay), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "tcpKeepalive", sizeof("tcpKeepalive"),
-                           PHP5TO7_ZVAL_MAYBE_P(tcpKeepalive), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "retryPolicy", sizeof("retryPolicy"),
-                           PHP5TO7_ZVAL_MAYBE_P(retryPolicy), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "timestampGenerator", sizeof("timestampGenerator"),
-                           PHP5TO7_ZVAL_MAYBE_P(timestampGen), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "schemaMetadata", sizeof("schemaMetadata"),
-                           PHP5TO7_ZVAL_MAYBE_P(schemaMetadata), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "blacklist_hosts", sizeof("blacklist_hosts"),
-                           PHP5TO7_ZVAL_MAYBE_P(blacklistHosts), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "whitelist_hosts", sizeof("whitelist_hosts"),
-                           PHP5TO7_ZVAL_MAYBE_P(whitelistHosts), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "blacklist_dcs", sizeof("blacklist_dcs"),
-                           PHP5TO7_ZVAL_MAYBE_P(blacklistDCs), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "whitelist_dcs", sizeof("whitelist_dcs"),
-                           PHP5TO7_ZVAL_MAYBE_P(whitelistDCs), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "hostnameResolution", sizeof("hostnameResolution"),
-                           PHP5TO7_ZVAL_MAYBE_P(hostnameResolution), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "randomizedContactPoints", sizeof("randomizedContactPoints"),
-                           PHP5TO7_ZVAL_MAYBE_P(randomizedContactPoints), sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "connectionHeartbeatInterval", sizeof("connectionHeartbeatInterval"),
-                           PHP5TO7_ZVAL_MAYBE_P(connectionHeartbeatInterval), sizeof(zval));
+
+  ZVAL_BOOL(&(randomizedContactPoints), self->enable_randomized_contact_points);
+
+
+  ZVAL_LONG(&(connectionHeartbeatInterval), self->connection_heartbeat_interval);
+
+  zend_hash_str_update(props, "contactPoints", strlen("contactPoints"), &(contactPoints));
+  zend_hash_str_update(props, "loadBalancingPolicy", strlen("loadBalancingPolicy"), &(loadBalancingPolicy));
+  zend_hash_str_update(props, "localDatacenter", strlen("localDatacenter"), &(localDatacenter));
+  zend_hash_str_update(props, "hostPerRemoteDatacenter", strlen("hostPerRemoteDatacenter"), &(hostPerRemoteDatacenter));
+  zend_hash_str_update(props, "useRemoteDatacenterForLocalConsistencies", strlen("useRemoteDatacenterForLocalConsistencies"), &(useRemoteDatacenterForLocalConsistencies));
+  zend_hash_str_update(props, "useTokenAwareRouting", strlen("useTokenAwareRouting"), &(useTokenAwareRouting));
+  zend_hash_str_update(props, "username", strlen("username"), &(username));
+  zend_hash_str_update(props, "password", strlen("password"), &(password));
+  zend_hash_str_update(props, "connectTimeout", strlen("connectTimeout"), &(connectTimeout));
+  zend_hash_str_update(props, "requestTimeout", strlen("requestTimeout"), &(requestTimeout));
+  zend_hash_str_update(props, "sslOptions", strlen("sslOptions"), &(sslOptions));
+  zend_hash_str_update(props, "defaultConsistency", strlen("defaultConsistency"), &(defaultConsistency));
+  zend_hash_str_update(props, "defaultPageSize", strlen("defaultPageSize"), &(defaultPageSize));
+  zend_hash_str_update(props, "defaultTimeout", strlen("defaultTimeout"), &(defaultTimeout));
+  zend_hash_str_update(props, "usePersistentSessions", strlen("usePersistentSessions"), &(usePersistentSessions));
+  zend_hash_str_update(props, "protocolVersion", strlen("protocolVersion"), &(protocolVersion));
+  zend_hash_str_update(props, "ioThreads", strlen("ioThreads"), &(ioThreads));
+  zend_hash_str_update(props, "coreConnectionPerHost", strlen("coreConnectionPerHost"), &(coreConnectionPerHost));
+  zend_hash_str_update(props, "maxConnectionsPerHost", strlen("maxConnectionsPerHost"), &(maxConnectionsPerHost));
+  zend_hash_str_update(props, "reconnectInterval", strlen("reconnectInterval"), &(reconnectInterval));
+  zend_hash_str_update(props, "latencyAwareRouting", strlen("latencyAwareRouting"), &(latencyAwareRouting));
+  zend_hash_str_update(props, "tcpNodelay", strlen("tcpNodelay"), &(tcpNodelay));
+  zend_hash_str_update(props, "tcpKeepalive", strlen("tcpKeepalive"), &(tcpKeepalive));
+  zend_hash_str_update(props, "retryPolicy", strlen("retryPolicy"), &(retryPolicy));
+  zend_hash_str_update(props, "timestampGenerator", strlen("timestampGenerator"), &(timestampGen));
+  zend_hash_str_update(props, "schemaMetadata", strlen("schemaMetadata"), &(schemaMetadata));
+  zend_hash_str_update(props, "blacklist_hosts", strlen("blacklist_hosts"), &(blacklistHosts));
+  zend_hash_str_update(props, "whitelist_hosts", strlen("whitelist_hosts"), &(whitelistHosts));
+  zend_hash_str_update(props, "blacklist_dcs", strlen("blacklist_dcs"), &(blacklistDCs));
+  zend_hash_str_update(props, "whitelist_dcs", strlen("whitelist_dcs"), &(whitelistDCs));
+  zend_hash_str_update(props, "hostnameResolution", strlen("hostnameResolution"), &(hostnameResolution));
+  zend_hash_str_update(props, "randomizedContactPoints", strlen("randomizedContactPoints"), &(randomizedContactPoints));
+  zend_hash_str_update(props, "connectionHeartbeatInterval", strlen("connectionHeartbeatInterval"), &(connectionHeartbeatInterval));
 
   return props;
 }
@@ -1296,10 +1260,10 @@ php_driver_cluster_builder_compare(zval *obj1, zval *obj2)
 }
 
 static void
-php_driver_cluster_builder_free(php5to7_zend_object_free *object)
+php_driver_cluster_builder_free(zend_object *object)
 {
   php_driver_cluster_builder *self =
-      PHP5TO7_ZEND_OBJECT_GET(cluster_builder, object);
+          php_driver_cluster_builder_object_fetch(object);;
 
   efree(self->contact_points);
   self->contact_points = NULL;
@@ -1339,20 +1303,19 @@ php_driver_cluster_builder_free(php5to7_zend_object_free *object)
     self->whitelist_dcs = NULL;
   }
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->ssl_options);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->default_timeout);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->retry_policy);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->timestamp_gen);
+  CASS_ZVAL_MAYBE_DESTROY(self->ssl_options);
+  CASS_ZVAL_MAYBE_DESTROY(self->default_timeout);
+  CASS_ZVAL_MAYBE_DESTROY(self->retry_policy);
+  CASS_ZVAL_MAYBE_DESTROY(self->timestamp_gen);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
 }
 
-static php5to7_zend_object
+static zend_object *
 php_driver_cluster_builder_new(zend_class_entry *ce)
 {
   php_driver_cluster_builder *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(cluster_builder, ce);
+      CASS_ZEND_OBJECT_ECALLOC(cluster_builder, ce);
 
   self->contact_points = estrdup("127.0.0.1");
   self->port = 9042;
@@ -1386,12 +1349,12 @@ php_driver_cluster_builder_new(zend_class_entry *ce)
   self->enable_randomized_contact_points = 1;
   self->connection_heartbeat_interval = 30;
 
-  PHP5TO7_ZVAL_UNDEF(self->ssl_options);
-  PHP5TO7_ZVAL_UNDEF(self->default_timeout);
-  PHP5TO7_ZVAL_UNDEF(self->retry_policy);
-  PHP5TO7_ZVAL_UNDEF(self->timestamp_gen);
+  ZVAL_UNDEF(&(self->ssl_options));
+  ZVAL_UNDEF(&(self->default_timeout));
+  ZVAL_UNDEF(&(self->retry_policy));
+  ZVAL_UNDEF(&(self->timestamp_gen));
 
-  PHP5TO7_ZEND_OBJECT_INIT(cluster_builder, self, ce);
+  CASS_ZEND_OBJECT_INIT(cluster_builder, self, ce);
 }
 
 void php_driver_define_ClusterBuilder()
@@ -1400,7 +1363,7 @@ void php_driver_define_ClusterBuilder()
 
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Cluster\\Builder", php_driver_cluster_builder_methods);
   php_driver_cluster_builder_ce = zend_register_internal_class(&ce);
-  php_driver_cluster_builder_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_cluster_builder_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_cluster_builder_ce->create_object = php_driver_cluster_builder_new;
 
   memcpy(&php_driver_cluster_builder_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

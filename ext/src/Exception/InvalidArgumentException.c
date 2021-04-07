@@ -28,6 +28,6 @@ void php_driver_define_InvalidArgumentException()
   zend_class_entry ce;
 
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Exception\\InvalidArgumentException", InvalidArgumentException_methods);
-  php_driver_invalid_argument_exception_ce = php5to7_zend_register_internal_class_ex(&ce, spl_ce_InvalidArgumentException);
+  php_driver_invalid_argument_exception_ce = zend_register_internal_class_ex(&ce, spl_ce_InvalidArgumentException);
   zend_class_implements(php_driver_invalid_argument_exception_ce, 1, php_driver_exception_ce);
 }

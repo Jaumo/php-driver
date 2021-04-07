@@ -65,10 +65,10 @@ bind_argument_by_index(CassStatement *statement, size_t index, zval *value)
   if (Z_TYPE_P(value) == IS_LONG)
     CHECK_RESULT(cass_statement_bind_int32(statement, index, Z_LVAL_P(value)));
 
-  if (PHP5TO7_ZVAL_IS_TRUE_P(value))
+  if (Z_TYPE_P(value) == IS_TRUE)
     CHECK_RESULT(cass_statement_bind_bool(statement, index, cass_true));
 
-  if (PHP5TO7_ZVAL_IS_FALSE_P(value))
+  if (Z_TYPE_P(value) == IS_FALSE)
     CHECK_RESULT(cass_statement_bind_bool(statement, index, cass_false));
 
   if (Z_TYPE_P(value) == IS_OBJECT) {
@@ -228,10 +228,10 @@ bind_argument_by_name(CassStatement *statement, const char *name,
   if (Z_TYPE_P(value) == IS_LONG)
     CHECK_RESULT(cass_statement_bind_int32_by_name(statement, name, Z_LVAL_P(value)));
 
-  if (PHP5TO7_ZVAL_IS_TRUE_P(value))
+  if (Z_TYPE_P(value) == IS_TRUE)
     CHECK_RESULT(cass_statement_bind_bool_by_name(statement, name, cass_true));
 
-  if (PHP5TO7_ZVAL_IS_FALSE_P(value))
+  if (Z_TYPE_P(value) == IS_FALSE)
     CHECK_RESULT(cass_statement_bind_bool_by_name(statement, name, cass_false));
 
   if (Z_TYPE_P(value) == IS_OBJECT) {
@@ -379,19 +379,19 @@ bind_arguments(CassStatement *statement, HashTable *arguments)
 {
   int rc = SUCCESS;
 
-  php5to7_zval *current;
-  ulong num_key;
+  zval *current;
+  unsigned long num_key;
 
   zend_string *key;
   ZEND_HASH_FOREACH_KEY_VAL(arguments, num_key, key, current) {
     if (key) {
       rc = bind_argument_by_name(statement, key->val,
-                                 PHP5TO7_ZVAL_MAYBE_DEREF(current));
+                                 current);
     } else {
-      rc = bind_argument_by_index(statement, num_key, PHP5TO7_ZVAL_MAYBE_DEREF(current));
+      rc = bind_argument_by_index(statement, num_key, current);
     }
     if (rc == FAILURE) break;
-  } PHP5TO7_ZEND_HASH_FOREACH_END(arguments);
+  } ZEND_HASH_FOREACH_END();
 
   return rc;
 }
@@ -437,8 +437,8 @@ create_batch(php_driver_statement *batch,
   CassBatch *cass_batch = cass_batch_new(batch->data.batch.type);
   CassError rc = CASS_OK;
 
-  php5to7_zval *current;
-  PHP5TO7_ZEND_HASH_FOREACH_VAL(&batch->data.batch.statements, current) {
+  zval *current;
+  ZEND_HASH_FOREACH_VAL(&batch->data.batch.statements, current) {
     php_driver_statement *statement;
     php_driver_statement simple_statement;
     HashTable *arguments;
@@ -446,16 +446,16 @@ create_batch(php_driver_statement *batch,
 
     php_driver_batch_statement_entry *batch_statement_entry = (php_driver_batch_statement_entry *)Z_PTR_P(current);
 
-    if (PHP5TO7_Z_TYPE_MAYBE_P(batch_statement_entry->statement) == IS_STRING) {
+    if (Z_TYPE(batch_statement_entry->statement) == IS_STRING) {
       simple_statement.type = PHP_DRIVER_SIMPLE_STATEMENT;
-      simple_statement.data.simple.cql = PHP5TO7_Z_STRVAL_MAYBE_P(batch_statement_entry->statement);
+      simple_statement.data.simple.cql = Z_STRVAL(batch_statement_entry->statement);
       statement = &simple_statement;
     } else {
-      statement = PHP_DRIVER_GET_STATEMENT(PHP5TO7_ZVAL_MAYBE_P(batch_statement_entry->statement));
+      statement = PHP_DRIVER_GET_STATEMENT(&(batch_statement_entry->statement));
     }
 
-    arguments = !PHP5TO7_ZVAL_IS_UNDEF(batch_statement_entry->arguments)
-                ? Z_ARRVAL_P(PHP5TO7_ZVAL_MAYBE_P(batch_statement_entry->arguments))
+    arguments = !Z_ISUNDEF(batch_statement_entry->arguments)
+                ? Z_ARRVAL_P(&(batch_statement_entry->arguments))
                 : NULL;
 
     stmt = create_statement(statement, arguments);
@@ -465,7 +465,7 @@ create_batch(php_driver_statement *batch,
     }
     cass_batch_add_statement(cass_batch, stmt);
     cass_statement_free(stmt);
-  } PHP5TO7_ZEND_HASH_FOREACH_END(&batch->data.batch.statements);
+  } ZEND_HASH_FOREACH_END();
 
   rc = cass_batch_set_consistency(cass_batch, consistency);
   ASSERT_SUCCESS_BLOCK(rc,
@@ -571,7 +571,7 @@ PHP_METHOD(DefaultSession, execute)
 
   consistency = self->default_consistency;
   page_size = self->default_page_size;
-  timeout = PHP5TO7_ZVAL_MAYBE_P(self->default_timeout);
+  timeout = &(self->default_timeout);
 
   if (options) {
     if (Z_TYPE_P(options) != IS_ARRAY &&
@@ -588,8 +588,8 @@ PHP_METHOD(DefaultSession, execute)
       opts = &local_opts;
     }
 
-    if (!PHP5TO7_ZVAL_IS_UNDEF(opts->arguments))
-      arguments = PHP5TO7_Z_ARRVAL_MAYBE_P(opts->arguments);
+    if (!Z_ISUNDEF(opts->arguments))
+      arguments = Z_ARRVAL(opts->arguments);
 
     if (opts->consistency >= 0)
       consistency = (CassConsistency) opts->consistency;
@@ -602,14 +602,14 @@ PHP_METHOD(DefaultSession, execute)
       paging_state_token_size = opts->paging_state_token_size;
     }
 
-    if (!PHP5TO7_ZVAL_IS_UNDEF(opts->timeout))
-      timeout = PHP5TO7_ZVAL_MAYBE_P(opts->timeout);
+    if (!Z_ISUNDEF(opts->timeout))
+      timeout = &(opts->timeout);
 
     if (opts->serial_consistency >= 0)
       serial_consistency = opts->serial_consistency;
 
-    if (!PHP5TO7_ZVAL_IS_UNDEF(opts->retry_policy))
-      retry_policy = (PHP_DRIVER_GET_RETRY_POLICY(PHP5TO7_ZVAL_MAYBE_P(opts->retry_policy)))->policy;
+    if (!Z_ISUNDEF(opts->retry_policy))
+      retry_policy = (PHP_DRIVER_GET_RETRY_POLICY(&(opts->retry_policy)))->policy;
 
     timestamp = opts->timestamp;
   }
@@ -741,8 +741,8 @@ PHP_METHOD(DefaultSession, executeAsync)
       opts = &local_opts;
     }
 
-    if (!PHP5TO7_ZVAL_IS_UNDEF(opts->arguments))
-      arguments = PHP5TO7_Z_ARRVAL_MAYBE_P(opts->arguments);
+    if (!Z_ISUNDEF(opts->arguments))
+      arguments = Z_ARRVAL(opts->arguments);
 
     if (opts->consistency >= 0)
       consistency = (CassConsistency) opts->consistency;
@@ -758,8 +758,8 @@ PHP_METHOD(DefaultSession, executeAsync)
     if (opts->serial_consistency >= 0)
       serial_consistency = opts->serial_consistency;
 
-    if (!PHP5TO7_ZVAL_IS_UNDEF(opts->retry_policy))
-      retry_policy = (PHP_DRIVER_GET_RETRY_POLICY(PHP5TO7_ZVAL_MAYBE_P(opts->retry_policy)))->policy;
+    if (!Z_ISUNDEF(opts->retry_policy))
+      retry_policy = (PHP_DRIVER_GET_RETRY_POLICY(&(opts->retry_policy)))->policy;
 
     timestamp = opts->timestamp;
   }
@@ -831,7 +831,7 @@ PHP_METHOD(DefaultSession, prepare)
       }
       opts = &local_opts;
     }
-    timeout = PHP5TO7_ZVAL_MAYBE_P(opts->timeout);
+    timeout = &(opts->timeout);
   }
 
   future = cass_session_prepare_n((CassSession *)self->session->data,
@@ -919,9 +919,9 @@ PHP_METHOD(DefaultSession, closeAsync)
 PHP_METHOD(DefaultSession, metrics)
 {
   CassMetrics metrics;
-  php5to7_zval requests;
-  php5to7_zval stats;
-  php5to7_zval errors;
+  zval requests;
+  zval stats;
+  zval errors;
   php_driver_session *self = PHP_DRIVER_GET_SESSION(getThis());
 
   if (zend_parse_parameters_none() == FAILURE)
@@ -929,82 +929,82 @@ PHP_METHOD(DefaultSession, metrics)
 
   cass_session_get_metrics((CassSession *)self->session->data, &metrics);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(requests);
-  array_init(PHP5TO7_ZVAL_MAYBE_P(requests));
-  add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(requests),
+
+  array_init(&(requests));
+  add_assoc_long(&(requests),
                  "min",
                  metrics.requests.min);
-  add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(requests),
+  add_assoc_long(&(requests),
                  "max",
                  metrics.requests.max);
-  add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(requests),
+  add_assoc_long(&(requests),
                  "mean",
                  metrics.requests.mean);
-  add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(requests),
+  add_assoc_long(&(requests),
                  "stddev",
                  metrics.requests.stddev);
-  add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(requests),
+  add_assoc_long(&(requests),
                  "median",
                  metrics.requests.median);
-  add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(requests),
+  add_assoc_long(&(requests),
                  "p75",
                  metrics.requests.percentile_75th);
-  add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(requests),
+  add_assoc_long(&(requests),
                  "p95",
                  metrics.requests.percentile_95th);
-  add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(requests),
+  add_assoc_long(&(requests),
                  "p98",
                  metrics.requests.percentile_98th);
-  add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(requests),
+  add_assoc_long(&(requests),
                  "p99",
                  metrics.requests.percentile_99th);
-  add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(requests),
+  add_assoc_long(&(requests),
                  "p999",
                  metrics.requests.percentile_999th);
-  add_assoc_double(PHP5TO7_ZVAL_MAYBE_P(requests),
+  add_assoc_double(&(requests),
                    "mean_rate",
                    metrics.requests.mean_rate);
-  add_assoc_double(PHP5TO7_ZVAL_MAYBE_P(requests),
+  add_assoc_double(&(requests),
                    "m1_rate",
                    metrics.requests.one_minute_rate);
-  add_assoc_double(PHP5TO7_ZVAL_MAYBE_P(requests),
+  add_assoc_double(&(requests),
                    "m5_rate",
                    metrics.requests.five_minute_rate);
-  add_assoc_double(PHP5TO7_ZVAL_MAYBE_P(requests),
+  add_assoc_double(&(requests),
                    "m15_rate",
                    metrics.requests.fifteen_minute_rate);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(stats);
-  array_init(PHP5TO7_ZVAL_MAYBE_P(stats));
-  add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(stats),
+
+  array_init(&(stats));
+  add_assoc_long(&(stats),
                  "total_connections",
                  metrics.stats.total_connections);
-  add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(stats),
+  add_assoc_long(&(stats),
                 "available_connections",
                 metrics.stats.available_connections);
-  add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(stats),
+  add_assoc_long(&(stats),
                  "exceeded_pending_requests_water_mark",
                  metrics.stats.exceeded_pending_requests_water_mark);
-  add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(stats),
+  add_assoc_long(&(stats),
                  "exceeded_write_bytes_water_mark",
                  metrics.stats.exceeded_write_bytes_water_mark);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(errors);
-  array_init(PHP5TO7_ZVAL_MAYBE_P(errors));
-  add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(errors),
+
+  array_init(&(errors));
+  add_assoc_long(&(errors),
                  "connection_timeouts",
                  metrics.errors.connection_timeouts);
-  add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(errors),
+  add_assoc_long(&(errors),
                  "pending_request_timeouts",
                  metrics.errors.pending_request_timeouts);
-  add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(errors),
+  add_assoc_long(&(errors),
                  "request_timeouts",
                  metrics.errors.request_timeouts);
 
   array_init(return_value);
-  add_assoc_zval(return_value, "stats", PHP5TO7_ZVAL_MAYBE_P(stats));
-  add_assoc_zval(return_value, "requests", PHP5TO7_ZVAL_MAYBE_P(requests));
-  add_assoc_zval(return_value, "errors", PHP5TO7_ZVAL_MAYBE_P(errors));
+  add_assoc_zval(return_value, "stats", &(stats));
+  add_assoc_zval(return_value, "requests", &(requests));
+  add_assoc_zval(return_value, "errors", &(errors));
 }
 
 PHP_METHOD(DefaultSession, schema)
@@ -1074,30 +1074,30 @@ php_driver_default_session_compare(zval *obj1, zval *obj2)
 }
 
 static void
-php_driver_default_session_free(php5to7_zend_object_free *object)
+php_driver_default_session_free(zend_object *object)
 {
-  php_driver_session *self = PHP5TO7_ZEND_OBJECT_GET(session, object);
+  php_driver_session *self = php_driver_session_object_fetch(object);;
 
   php_driver_del_peref(&self->session, 1);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->default_timeout);
+  CASS_ZVAL_MAYBE_DESTROY(self->default_timeout);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
+
 }
 
-static php5to7_zend_object
+static zend_object *
 php_driver_default_session_new(zend_class_entry *ce)
 {
   php_driver_session *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(session, ce);
+      CASS_ZEND_OBJECT_ECALLOC(session, ce);
 
   self->session             = NULL;
   self->persist             = 0;
   self->default_consistency = PHP_DRIVER_DEFAULT_CONSISTENCY;
   self->default_page_size   = 5000;
-  PHP5TO7_ZVAL_UNDEF(self->default_timeout);
+  ZVAL_UNDEF(&(self->default_timeout));
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(session, default_session, self, ce);
+  CASS_ZEND_OBJECT_INIT_EX(session, default_session, self, ce);
 }
 
 void php_driver_define_DefaultSession()
@@ -1107,7 +1107,7 @@ void php_driver_define_DefaultSession()
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\DefaultSession", php_driver_default_session_methods);
   php_driver_default_session_ce = zend_register_internal_class(&ce);
   zend_class_implements(php_driver_default_session_ce, 1, php_driver_session_ce);
-  php_driver_default_session_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_default_session_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_default_session_ce->create_object = php_driver_default_session_new;
 
   memcpy(&php_driver_default_session_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

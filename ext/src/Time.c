@@ -82,7 +82,7 @@ to_string(zval *result, php_driver_time *time)
 #else
   spprintf(&string, 0, "%" PRId64, time->time);
 #endif
-  PHP5TO7_ZVAL_STRING(result, string);
+  ZVAL_STRING(result, string);
   efree(string);
   return SUCCESS;
 }
@@ -134,8 +134,8 @@ PHP_METHOD(Time, __construct)
 /* {{{ Time::type() */
 PHP_METHOD(Time, type)
 {
-  php5to7_zval type = php_driver_type_scalar(CASS_VALUE_TYPE_TIME);
-  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(type), 1, 1);
+  zval type = php_driver_type_scalar(CASS_VALUE_TYPE_TIME);
+  RETURN_ZVAL(&(type), 1, 1);
 }
 /* }}} */
 
@@ -152,23 +152,23 @@ PHP_METHOD(Time, fromDateTime)
 {
   php_driver_time *self;
   zval *zdatetime;
-  php5to7_zval retval;
+  zval retval;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &zdatetime) == FAILURE) {
     return;
   }
 
-  zend_call_method_with_0_params(PHP5TO7_ZVAL_MAYBE_ADDR_OF(zdatetime),
+  zend_call_method_with_0_params(zdatetime,
                                  php_date_get_date_ce(),
                                  NULL,
                                  "gettimestamp",
                                  &retval);
 
-  if (!PHP5TO7_ZVAL_IS_UNDEF(retval) &&
-      Z_TYPE_P(PHP5TO7_ZVAL_MAYBE_P(retval)) == IS_LONG) {
+  if (!Z_ISUNDEF(retval) &&
+      Z_TYPE_P(&(retval)) == IS_LONG) {
     object_init_ex(return_value, php_driver_time_ce);
     self = PHP_DRIVER_GET_TIME(return_value);
-    self->time = cass_time_from_epoch(PHP5TO7_Z_LVAL_MAYBE_P(retval));
+    self->time = cass_time_from_epoch(Z_LVAL(retval));
     zval_ptr_dtor(&retval);
     return;
   }
@@ -212,7 +212,7 @@ static zend_function_entry php_driver_time_methods[] = {
 static php_driver_value_handlers php_driver_time_handlers;
 
 static HashTable *
-php_driver_time_gc(zval *object, php5to7_zval_gc table, int *n)
+php_driver_time_gc(zval *object, zval **table, int *n)
 {
   *table = NULL;
   *n = 0;
@@ -222,18 +222,18 @@ php_driver_time_gc(zval *object, php5to7_zval_gc table, int *n)
 static HashTable *
 php_driver_time_properties(zval *object)
 {
-  php5to7_zval type;
-  php5to7_zval nanoseconds;
+  zval type;
+  zval nanoseconds;
 
   php_driver_time *self = PHP_DRIVER_GET_TIME(object);
   HashTable *props = zend_std_get_properties(object);
 
   type = php_driver_type_scalar(CASS_VALUE_TYPE_TIME);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), PHP5TO7_ZVAL_MAYBE_P(type), sizeof(zval));
+  zend_hash_str_update(props, "type", strlen("type"), &(type));
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(nanoseconds);
-  to_string(PHP5TO7_ZVAL_MAYBE_P(nanoseconds), self);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "nanoseconds", sizeof("nanoseconds"), PHP5TO7_ZVAL_MAYBE_P(nanoseconds), sizeof(zval));
+
+  to_string(&(nanoseconds), self);
+  zend_hash_str_update(props, "nanoseconds", strlen("nanoseconds"), &(nanoseconds));
 
   return props;
 }
@@ -260,23 +260,23 @@ php_driver_time_hash_value(zval *obj)
 }
 
 static void
-php_driver_time_free(php5to7_zend_object_free *object)
+php_driver_time_free(zend_object *object)
 {
-  php_driver_time *self = PHP5TO7_ZEND_OBJECT_GET(time, object);
+  php_driver_time *self = php_driver_time_object_fetch(object);;
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
+
 }
 
-static php5to7_zend_object
+static zend_object *
 php_driver_time_new(zend_class_entry *ce)
 {
   php_driver_time *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(time, ce);
+      CASS_ZEND_OBJECT_ECALLOC(time, ce);
 
   self->time = 0;
 
-  PHP5TO7_ZEND_OBJECT_INIT(time, self, ce);
+  CASS_ZEND_OBJECT_INIT(time, self, ce);
 }
 
 void php_driver_define_Time()
@@ -292,7 +292,7 @@ void php_driver_define_Time()
   php_driver_time_handlers.std.get_gc          = php_driver_time_gc;
 #endif
   php_driver_time_handlers.std.compare_objects = php_driver_time_compare;
-  php_driver_time_ce->ce_flags |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_time_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_time_ce->create_object = php_driver_time_new;
 
   php_driver_time_handlers.hash_value = php_driver_time_hash_value;

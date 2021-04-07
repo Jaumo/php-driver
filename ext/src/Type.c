@@ -25,12 +25,12 @@ zend_class_entry *php_driver_type_ce = NULL;
 
 #define XX_SCALAR_METHOD(name, value) PHP_METHOD(Type, name) \
 { \
-  php5to7_zval ztype; \
+  zval ztype; \
   if (zend_parse_parameters_none() == FAILURE) { \
     return; \
   } \
   ztype = php_driver_type_scalar(value); \
-  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(ztype), 1, 1); \
+  RETURN_ZVAL(&(ztype), 1, 1); \
 }
 
 PHP_DRIVER_SCALAR_TYPES_MAP(XX_SCALAR_METHOD)
@@ -38,7 +38,7 @@ PHP_DRIVER_SCALAR_TYPES_MAP(XX_SCALAR_METHOD)
 
 PHP_METHOD(Type, collection)
 {
-  php5to7_zval ztype;
+  zval ztype;
   zval *value_type;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "O",
@@ -52,14 +52,14 @@ PHP_METHOD(Type, collection)
 
   ztype  = php_driver_type_collection(value_type);
   Z_ADDREF_P(value_type);
-  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(ztype), 0, 1);
+  RETURN_ZVAL(&(ztype), 0, 1);
 }
 
 PHP_METHOD(Type, tuple)
 {
-  php5to7_zval ztype;
+  zval ztype;
   php_driver_type *type;
-  php5to7_zval_args args = NULL;
+  zval *args = NULL;
   int argc = 0, i;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "+",
@@ -68,18 +68,18 @@ PHP_METHOD(Type, tuple)
   }
 
   for (i = 0; i < argc; ++i) {
-    zval *sub_type = PHP5TO7_ZVAL_ARG(args[i]);
+    zval *sub_type = &(args[i]);
     if (!php_driver_type_validate(sub_type, "type")) {
-      PHP5TO7_MAYBE_EFREE(args);
+
       return;
     }
   }
 
   ztype = php_driver_type_tuple();
-  type = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
+  type = PHP_DRIVER_GET_TYPE(&(ztype));
 
   for (i = 0; i < argc; ++i) {
-    zval *sub_type = PHP5TO7_ZVAL_ARG(args[i]);
+    zval *sub_type = &(args[i]);
     if (php_driver_type_tuple_add(type, sub_type)) {
       Z_ADDREF_P(sub_type);
     } else {
@@ -87,15 +87,15 @@ PHP_METHOD(Type, tuple)
     }
   }
 
-  PHP5TO7_MAYBE_EFREE(args);
-  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(ztype), 0, 1);
+
+  RETURN_ZVAL(&(ztype), 0, 1);
 }
 
 PHP_METHOD(Type, userType)
 {
-  php5to7_zval ztype;
+  zval ztype;
   php_driver_type *type;
-  php5to7_zval_args args = NULL;
+  zval *args = NULL;
   int argc = 0, i;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "+",
@@ -109,31 +109,31 @@ PHP_METHOD(Type, userType)
                             "from an even number of name/type pairs, where each odd " \
                             "argument is a name and each even argument is a type, " \
                             "e.g userType(name, type, name, type, name, type)");
-    PHP5TO7_MAYBE_EFREE(args);
+
     return;
   }
 
   for (i = 0; i < argc; i += 2) {
-    zval *name = PHP5TO7_ZVAL_ARG(args[i]);
-    zval *sub_type = PHP5TO7_ZVAL_ARG(args[i + 1]);
+    zval *name = &(args[i]);
+    zval *sub_type = &(args[i + 1]);
     if (Z_TYPE_P(name) != IS_STRING) {
       zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
                               "Argument %d is not a string", i + 1);
-      PHP5TO7_MAYBE_EFREE(args);
+
       return;
     }
     if (!php_driver_type_validate(sub_type, "type")) {
-      PHP5TO7_MAYBE_EFREE(args);
+
       return;
     }
   }
 
   ztype = php_driver_type_user_type();
-  type = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
+  type = PHP_DRIVER_GET_TYPE(&(ztype));
 
   for (i = 0; i < argc; i += 2) {
-    zval *name = PHP5TO7_ZVAL_ARG(args[i]);
-    zval *sub_type = PHP5TO7_ZVAL_ARG(args[i + 1]);
+    zval *name = &(args[i]);
+    zval *sub_type = &(args[i + 1]);
     if (php_driver_type_user_type_add(type,
                                          Z_STRVAL_P(name), Z_STRLEN_P(name),
                                          sub_type)) {
@@ -144,13 +144,13 @@ PHP_METHOD(Type, userType)
   }
 
 
-  PHP5TO7_MAYBE_EFREE(args);
-  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(ztype), 0, 1);
+
+  RETURN_ZVAL(&(ztype), 0, 1);
 }
 
 PHP_METHOD(Type, set)
 {
-  php5to7_zval ztype;
+  zval ztype;
   zval *value_type;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "O",
@@ -164,12 +164,12 @@ PHP_METHOD(Type, set)
 
   ztype = php_driver_type_set(value_type);
   Z_ADDREF_P(value_type);
-  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(ztype), 0, 1);
+  RETURN_ZVAL(&(ztype), 0, 1);
 }
 
 PHP_METHOD(Type, map)
 {
-  php5to7_zval ztype;
+  zval ztype;
   zval *key_type;
   zval *value_type;
 
@@ -190,7 +190,7 @@ PHP_METHOD(Type, map)
   ztype = php_driver_type_map(key_type, value_type);
   Z_ADDREF_P(key_type);
   Z_ADDREF_P(value_type);
-  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(ztype), 0, 1);
+  RETURN_ZVAL(&(ztype), 0, 1);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)

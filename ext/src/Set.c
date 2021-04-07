@@ -35,9 +35,9 @@ php_driver_set_add(php_driver_set *set, zval *object)
     return 0;
   }
 
-  type = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(set->type));
+  type = PHP_DRIVER_GET_TYPE(&(set->type));
 
-  if (!php_driver_validate_object(object, PHP5TO7_ZVAL_MAYBE_P(type->data.set.value_type))) {
+  if (!php_driver_validate_object(object, &(type->data.set.value_type))) {
     return 0;
   }
 
@@ -45,7 +45,7 @@ php_driver_set_add(php_driver_set *set, zval *object)
   if (entry == NULL) {
     set->dirty = 1;
     entry = (php_driver_set_entry *) emalloc(sizeof(php_driver_set_entry));
-    PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(entry->value), object);
+    ZVAL_COPY(&(entry->value), object);
     HASH_ADD_ZVAL(set->entries, value, entry);
   }
 
@@ -59,9 +59,9 @@ php_driver_set_del(php_driver_set *set, zval *object)
   php_driver_type *type;
   int result = 0;
 
-  type = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(set->type));
+  type = PHP_DRIVER_GET_TYPE(&(set->type));
 
-  if (!php_driver_validate_object(object, PHP5TO7_ZVAL_MAYBE_P(type->data.set.value_type))) {
+  if (!php_driver_validate_object(object, &(type->data.set.value_type))) {
     return 0;
   }
 
@@ -87,9 +87,9 @@ php_driver_set_has(php_driver_set *set, zval *object)
   php_driver_type *type;
   int result = 0;
 
-  type = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(set->type));
+  type = PHP_DRIVER_GET_TYPE(&(set->type));
 
-  if (!php_driver_validate_object(object, PHP5TO7_ZVAL_MAYBE_P(type->data.set.value_type))) {
+  if (!php_driver_validate_object(object, &(type->data.set.value_type))) {
     return 0;
   }
 
@@ -106,10 +106,10 @@ php_driver_set_populate(php_driver_set *set, zval *array)
 {
   php_driver_set_entry *curr, *temp;
   HASH_ITER(hh, set->entries, curr, temp) {
-    if (add_next_index_zval(array, PHP5TO7_ZVAL_MAYBE_P(curr->value)) != SUCCESS) {
+    if (add_next_index_zval(array, &(curr->value)) != SUCCESS) {
       break;
     }
-    Z_TRY_ADDREF_P(PHP5TO7_ZVAL_MAYBE_P(curr->value));
+    Z_TRY_ADDREF_P(&(curr->value));
   }
 }
 
@@ -146,7 +146,7 @@ PHP_METHOD(Set, __construct)
 PHP_METHOD(Set, type)
 {
   php_driver_set *self = PHP_DRIVER_GET_SET(getThis());
-  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->type), 1, 0);
+  RETURN_ZVAL(&(self->type), 1, 0);
 }
 /* }}} */
 
@@ -227,7 +227,7 @@ PHP_METHOD(Set, current)
 {
   php_driver_set *self = PHP_DRIVER_GET_SET(getThis());
   if (self->iter_curr != NULL)
-    RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->iter_curr->value), 1, 0);
+    RETURN_ZVAL(&(self->iter_curr->value), 1, 0);
 }
 /* }}} */
 
@@ -299,7 +299,7 @@ static zend_function_entry php_driver_set_methods[] = {
 static php_driver_value_handlers php_driver_set_handlers;
 
 static HashTable *
-php_driver_set_gc(zval *object, php5to7_zval_gc table, int *n)
+php_driver_set_gc(zval *object, zval **table, int *n)
 {
   *table = NULL;
   *n = 0;
@@ -309,22 +309,20 @@ php_driver_set_gc(zval *object, php5to7_zval_gc table, int *n)
 static HashTable *
 php_driver_set_properties(zval *object)
 {
-  php5to7_zval values;
+  zval values;
 
   php_driver_set *self = PHP_DRIVER_GET_SET(object);
   HashTable     *props = zend_std_get_properties(object);
 
 
-  PHP5TO7_ZEND_HASH_UPDATE(props,
-                           "type", sizeof("type"),
-                           PHP5TO7_ZVAL_MAYBE_P(self->type), sizeof(zval));
-  Z_ADDREF_P(PHP5TO7_ZVAL_MAYBE_P(self->type));
+  zend_hash_str_update(props, "type", strlen("type"), &(self->type));
+  Z_ADDREF_P(&(self->type));
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(values);
-  array_init(PHP5TO7_ZVAL_MAYBE_P(values));
-  php_driver_set_populate(self , PHP5TO7_ZVAL_MAYBE_P(values));
-  PHP5TO7_ZEND_HASH_SORT(Z_ARRVAL_P(PHP5TO7_ZVAL_MAYBE_P(values)), php_driver_data_compare, 1);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "values", sizeof("values"), PHP5TO7_ZVAL_MAYBE_P(values), sizeof(zval));
+
+  array_init(&(values));
+  php_driver_set_populate(self , &(values));
+  zend_hash_sort(Z_ARRVAL_P(&(values)), php_driver_data_compare, 1);
+  zend_hash_str_update(props, "values", strlen("values"), &(values));
 
   return props;
 }
@@ -345,8 +343,8 @@ php_driver_set_compare(zval *obj1, zval *obj2)
   set1 = PHP_DRIVER_GET_SET(obj1);
   set2 = PHP_DRIVER_GET_SET(obj2);
 
-  type1 = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(set1->type));
-  type2 = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(set2->type));
+  type1 = PHP_DRIVER_GET_TYPE(&(set1->type));
+  type2 = PHP_DRIVER_GET_TYPE(&(set2->type));
 
   result = php_driver_type_compare(type1, type2);
   if (result != 0) return result;
@@ -357,7 +355,7 @@ php_driver_set_compare(zval *obj1, zval *obj2)
 
   HASH_ITER(hh, set1->entries, curr, temp) {
     php_driver_set_entry *entry;
-    HASH_FIND_ZVAL(set2->entries, PHP5TO7_ZVAL_MAYBE_P(curr->value), entry);
+    HASH_FIND_ZVAL(set2->entries, &(curr->value), entry);
     if (entry == NULL) {
       return 1;
     }
@@ -376,7 +374,7 @@ php_driver_set_hash_value(zval *obj)
   if (!self->dirty) return self->hashv;
 
   HASH_ITER(hh, self->entries, curr, temp) {
-    hashv = php_driver_combine_hash(hashv, php_driver_value_hash(PHP5TO7_ZVAL_MAYBE_P(curr->value)));
+    hashv = php_driver_combine_hash(hashv, php_driver_value_hash(&(curr->value)));
   }
 
   self->hashv = hashv;
@@ -386,9 +384,9 @@ php_driver_set_hash_value(zval *obj)
 }
 
 static void
-php_driver_set_free(php5to7_zend_object_free *object)
+php_driver_set_free(zend_object *object)
 {
-  php_driver_set *self = PHP5TO7_ZEND_OBJECT_GET(set, object);
+  php_driver_set *self = php_driver_set_object_fetch(object);;
   php_driver_set_entry *curr, *temp;
 
   HASH_ITER(hh, self->entries, curr, temp) {
@@ -397,24 +395,24 @@ php_driver_set_free(php5to7_zend_object_free *object)
     efree(curr);
   }
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->type);
+  CASS_ZVAL_MAYBE_DESTROY(self->type);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
+
 }
 
-static php5to7_zend_object
+static zend_object *
 php_driver_set_new(zend_class_entry *ce)
 {
   php_driver_set *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(set, ce);
+      CASS_ZEND_OBJECT_ECALLOC(set, ce);
 
   self->entries = self->iter_curr = self->iter_temp = NULL;
   self->iter_index = 0;
   self->dirty = 1;
-  PHP5TO7_ZVAL_UNDEF(self->type);
+  ZVAL_UNDEF(&(self->type));
 
-  PHP5TO7_ZEND_OBJECT_INIT(set, self, ce);
+  CASS_ZEND_OBJECT_INIT(set, self, ce);
 }
 
 void php_driver_define_Set()
@@ -430,7 +428,7 @@ void php_driver_define_Set()
   php_driver_set_handlers.std.get_gc          = php_driver_set_gc;
 #endif
   php_driver_set_handlers.std.compare_objects = php_driver_set_compare;
-  php_driver_set_ce->ce_flags |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_set_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_set_ce->create_object = php_driver_set_new;
   zend_class_implements(php_driver_set_ce, 2, spl_ce_Countable, zend_ce_iterator);
 

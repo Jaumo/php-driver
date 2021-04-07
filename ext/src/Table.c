@@ -20,14 +20,14 @@
 
 zend_class_entry *php_driver_table_ce = NULL;
 
-php5to7_zval
+zval
 php_driver_table_build_options(CassIterator* iterator) {
   const char *name;
   size_t name_length;
-  php5to7_zval zoptions;
+  zval zoptions;
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(zoptions);
-  array_init(PHP5TO7_ZVAL_MAYBE_P(zoptions));
+
+  array_init(&(zoptions));
   while (cass_iterator_next(iterator)) {
     const CassValue *value = NULL;
     if (cass_iterator_get_meta_field_name(iterator, &name, &name_length) == CASS_OK) {
@@ -40,14 +40,12 @@ php_driver_table_build_options(CassIterator* iterator) {
       if (value) {
         const CassDataType *data_type = cass_value_data_type(value);
         if (data_type) {
-          php5to7_zval zvalue;
-          PHP5TO7_ZVAL_UNDEF(zvalue);
+          zval zvalue;
+          ZVAL_UNDEF(&(zvalue));
           if (php_driver_value(value,
                                   data_type,
                                   &zvalue) == SUCCESS) {
-            PHP5TO7_ADD_ASSOC_ZVAL_EX(PHP5TO7_ZVAL_MAYBE_P(zoptions),
-                                      name, name_length + 1,
-                                      PHP5TO7_ZVAL_MAYBE_P(zvalue));
+            add_assoc_zval_ex(&(zoptions), name, name_length, &(zvalue));
           }
         }
       }

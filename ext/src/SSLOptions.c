@@ -43,25 +43,25 @@ php_driver_ssl_compare(zval *obj1, zval *obj2)
 }
 
 static void
-php_driver_ssl_free(php5to7_zend_object_free *object)
+php_driver_ssl_free(zend_object *object)
 {
-  php_driver_ssl *self = PHP5TO7_ZEND_OBJECT_GET(ssl, object);
+  php_driver_ssl *self = php_driver_ssl_object_fetch(object);;
 
   cass_ssl_free(self->ssl);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
+
 }
 
-static php5to7_zend_object
+static zend_object *
 php_driver_ssl_new(zend_class_entry *ce)
 {
   php_driver_ssl *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(ssl, ce);
+      CASS_ZEND_OBJECT_ECALLOC(ssl, ce);
 
   self->ssl = cass_ssl_new();
 
-  PHP5TO7_ZEND_OBJECT_INIT(ssl, self, ce);
+  CASS_ZEND_OBJECT_INIT(ssl, self, ce);
 }
 
 void php_driver_define_SSLOptions()
@@ -70,7 +70,7 @@ void php_driver_define_SSLOptions()
 
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\SSLOptions", php_driver_ssl_methods);
   php_driver_ssl_ce = zend_register_internal_class(&ce);
-  php_driver_ssl_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_ssl_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_ssl_ce->create_object = php_driver_ssl_new;
 
   memcpy(&php_driver_ssl_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

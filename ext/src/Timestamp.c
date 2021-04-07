@@ -69,8 +69,8 @@ PHP_METHOD(Timestamp, __construct)
 /* {{{ Timestamp::type() */
 PHP_METHOD(Timestamp, type)
 {
-  php5to7_zval type = php_driver_type_scalar(CASS_VALUE_TYPE_TIMESTAMP);
-  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(type), 1, 1);
+  zval type = php_driver_type_scalar(CASS_VALUE_TYPE_TIMESTAMP);
+  RETURN_ZVAL(&(type), 1, 1);
 }
 /* }}} */
 
@@ -105,7 +105,7 @@ PHP_METHOD(Timestamp, microtime)
   sec    = (long) (self->timestamp / 1000);
   usec   = (double) ((self->timestamp - (sec * 1000)) / 1000.00);
   spprintf(&ret, 0, "%.8F %ld", usec, sec);
-  PHP5TO7_RETVAL_STRING(ret);
+  RETVAL_STRING(ret);
   efree(ret);
 }
 /* }}} */
@@ -126,7 +126,7 @@ PHP_METHOD(Timestamp, toDateTime)
 
   self = PHP_DRIVER_GET_TIMESTAMP(getThis());
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(datetime);
+
   php_date_instantiate(php_date_get_date_ce(), datetime);
 
   datetime_obj = php_date_obj_from_obj(Z_OBJ_P(datetime));
@@ -152,7 +152,7 @@ PHP_METHOD(Timestamp, __toString)
   self = PHP_DRIVER_GET_TIMESTAMP(getThis());
 
   spprintf(&ret, 0, "%" PRId64, self->timestamp);
-  PHP5TO7_RETVAL_STRING(ret);
+  RETVAL_STRING(ret);
   efree(ret);
 }
 /* }}} */
@@ -182,7 +182,7 @@ static zend_function_entry php_driver_timestamp_methods[] = {
 static php_driver_value_handlers php_driver_timestamp_handlers;
 
 static HashTable *
-php_driver_timestamp_gc(zval *object, php5to7_zval_gc table, int *n)
+php_driver_timestamp_gc(zval *object, zval **table, int *n)
 {
   *table = NULL;
   *n = 0;
@@ -192,9 +192,9 @@ php_driver_timestamp_gc(zval *object, php5to7_zval_gc table, int *n)
 static HashTable *
 php_driver_timestamp_properties(zval *object)
 {
-  php5to7_zval type;
-  php5to7_zval seconds;
-  php5to7_zval microseconds;
+  zval type;
+  zval seconds;
+  zval microseconds;
 
   php_driver_timestamp *self = PHP_DRIVER_GET_TIMESTAMP(object);
   HashTable           *props = zend_std_get_properties(object);
@@ -203,15 +203,15 @@ php_driver_timestamp_properties(zval *object)
   long usec = (long) ((self->timestamp - (sec * 1000)) * 1000);
 
   type = php_driver_type_scalar(CASS_VALUE_TYPE_TIMESTAMP);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), PHP5TO7_ZVAL_MAYBE_P(type), sizeof(zval));
+  zend_hash_str_update(props, "type", strlen("type"), &(type));
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(seconds);
-  ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(seconds), sec);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "seconds", sizeof("seconds"), PHP5TO7_ZVAL_MAYBE_P(seconds), sizeof(zval));
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(microseconds);
-  ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(microseconds), usec);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "microseconds", sizeof("microseconds"), PHP5TO7_ZVAL_MAYBE_P(microseconds), sizeof(zval));
+  ZVAL_LONG(&(seconds), sec);
+  zend_hash_str_update(props, "seconds", strlen("seconds"), &(seconds));
+
+
+  ZVAL_LONG(&(microseconds), usec);
+  zend_hash_str_update(props, "microseconds", strlen("microseconds"), &(microseconds));
 
   return props;
 }
@@ -238,21 +238,21 @@ php_driver_timestamp_hash_value(zval *obj)
 }
 
 static void
-php_driver_timestamp_free(php5to7_zend_object_free *object)
+php_driver_timestamp_free(zend_object *object)
 {
-  php_driver_timestamp *self = PHP5TO7_ZEND_OBJECT_GET(timestamp, object);
+  php_driver_timestamp *self = php_driver_timestamp_object_fetch(object);;
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
+
 }
 
-static php5to7_zend_object
+static zend_object *
 php_driver_timestamp_new(zend_class_entry *ce)
 {
   php_driver_timestamp *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(timestamp, ce);
+      CASS_ZEND_OBJECT_ECALLOC(timestamp, ce);
 
-  PHP5TO7_ZEND_OBJECT_INIT(timestamp, self, ce);
+  CASS_ZEND_OBJECT_INIT(timestamp, self, ce);
 }
 
 void php_driver_define_Timestamp()
@@ -268,7 +268,7 @@ void php_driver_define_Timestamp()
   php_driver_timestamp_handlers.std.get_gc          = php_driver_timestamp_gc;
 #endif
   php_driver_timestamp_handlers.std.compare_objects = php_driver_timestamp_compare;
-  php_driver_timestamp_ce->ce_flags |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_timestamp_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_timestamp_ce->create_object = php_driver_timestamp_new;
 
   php_driver_timestamp_handlers.hash_value = php_driver_timestamp_hash_value;

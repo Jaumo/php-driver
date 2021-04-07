@@ -88,15 +88,15 @@ PHP_METHOD(Timeuuid, __toString)
 
   cass_uuid_string(self->uuid, string);
 
-  PHP5TO7_RETVAL_STRING(string);
+  RETVAL_STRING(string);
 }
 /* }}} */
 
 /* {{{ Timeuuid::type() */
 PHP_METHOD(Timeuuid, type)
 {
-  php5to7_zval type = php_driver_type_scalar(CASS_VALUE_TYPE_TIMEUUID);
-  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(type), 1, 1);
+  zval type = php_driver_type_scalar(CASS_VALUE_TYPE_TIMEUUID);
+  RETURN_ZVAL(&(type), 1, 1);
 }
 /* }}} */
 
@@ -108,7 +108,7 @@ PHP_METHOD(Timeuuid, uuid)
 
   cass_uuid_string(self->uuid, string);
 
-  PHP5TO7_RETVAL_STRING(string);
+  RETVAL_STRING(string);
 }
 /* }}} */
 
@@ -145,7 +145,7 @@ PHP_METHOD(Timeuuid, toDateTime)
 
   self = PHP_DRIVER_GET_UUID(getThis());
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(datetime);
+
   php_date_instantiate(php_date_get_date_ce(), datetime);
 
   datetime_obj = php_date_obj_from_obj(Z_OBJ_P(datetime));
@@ -179,7 +179,7 @@ static zend_function_entry php_driver_timeuuid_methods[] = {
 static php_driver_value_handlers php_driver_timeuuid_handlers;
 
 static HashTable *
-php_driver_timeuuid_gc(zval *object, php5to7_zval_gc table, int *n)
+php_driver_timeuuid_gc(zval *object, zval **table, int *n)
 {
   *table = NULL;
   *n = 0;
@@ -190,25 +190,25 @@ static HashTable *
 php_driver_timeuuid_properties(zval *object)
 {
   char string[CASS_UUID_STRING_LENGTH];
-  php5to7_zval type;
-  php5to7_zval uuid;
-  php5to7_zval version;
+  zval type;
+  zval uuid;
+  zval version;
 
   php_driver_uuid *self = PHP_DRIVER_GET_UUID(object);
   HashTable      *props = zend_std_get_properties(object);
 
   type = php_driver_type_scalar(CASS_VALUE_TYPE_TIMEUUID);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), PHP5TO7_ZVAL_MAYBE_P(type), sizeof(zval));
+  zend_hash_str_update(props, "type", strlen("type"), &(type));
 
   cass_uuid_string(self->uuid, string);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(uuid);
-  PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(uuid), string);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "uuid", sizeof("uuid"), PHP5TO7_ZVAL_MAYBE_P(uuid), sizeof(zval));
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(version);
-  ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(version), (long) cass_uuid_version(self->uuid));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "version", sizeof("version"), PHP5TO7_ZVAL_MAYBE_P(version), sizeof(zval));
+  ZVAL_STRING(&(uuid), string);
+  zend_hash_str_update(props, "uuid", strlen("uuid"), &(uuid));
+
+
+  ZVAL_LONG(&(version), (long) cass_uuid_version(self->uuid));
+  zend_hash_str_update(props, "version", strlen("version"), &(version));
 
   return props;
 }
@@ -242,21 +242,21 @@ php_driver_timeuuid_hash_value(zval *obj)
 }
 
 static void
-php_driver_timeuuid_free(php5to7_zend_object_free *object)
+php_driver_timeuuid_free(zend_object *object)
 {
-  php_driver_uuid *self = PHP5TO7_ZEND_OBJECT_GET(uuid, object);
+  php_driver_uuid *self = php_driver_uuid_object_fetch(object);;
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
+
 }
 
-static php5to7_zend_object
+static zend_object *
 php_driver_timeuuid_new(zend_class_entry *ce)
 {
   php_driver_uuid *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(uuid, ce);
+      CASS_ZEND_OBJECT_ECALLOC(uuid, ce);
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(uuid, timeuuid, self, ce);
+  CASS_ZEND_OBJECT_INIT_EX(uuid, timeuuid, self, ce);
 }
 
 void
@@ -273,7 +273,7 @@ php_driver_define_Timeuuid()
   php_driver_timeuuid_handlers.std.get_gc          = php_driver_timeuuid_gc;
 #endif
   php_driver_timeuuid_handlers.std.compare_objects = php_driver_timeuuid_compare;
-  php_driver_timeuuid_ce->ce_flags |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_timeuuid_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_timeuuid_ce->create_object = php_driver_timeuuid_new;
 
   php_driver_timeuuid_handlers.hash_value = php_driver_timeuuid_hash_value;
