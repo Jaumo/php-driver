@@ -247,14 +247,6 @@ static zend_function_entry php_driver_execution_options_methods[] = {
 
 static zend_object_handlers php_driver_execution_options_handlers;
 
-static HashTable *
-php_driver_execution_options_properties(zval *object)
-{
-  HashTable *props = zend_std_get_properties(object);
-
-  return props;
-}
-
 static int
 php_driver_execution_options_compare(zval *obj1, zval *obj2)
 {
@@ -301,7 +293,6 @@ void php_driver_define_ExecutionOptions()
   php_driver_execution_options_ce->create_object = php_driver_execution_options_new;
 
   memcpy(&php_driver_execution_options_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-  php_driver_execution_options_handlers.get_properties  = php_driver_execution_options_properties;
   CASS_COMPAT_SET_COMPARE_HANDLER(php_driver_execution_options_handlers, php_driver_execution_options_compare);
   php_driver_execution_options_handlers.clone_obj = NULL;
 }

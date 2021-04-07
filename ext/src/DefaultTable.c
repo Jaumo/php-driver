@@ -686,14 +686,6 @@ php_driver_type_default_table_gc(zval *object, zval **table, int *n)
   return zend_std_get_properties(object);
 }
 
-static HashTable *
-php_driver_default_table_properties(zval *object)
-{
-  HashTable *props = zend_std_get_properties(object);
-
-  return props;
-}
-
 static int
 php_driver_default_table_compare(zval *obj1, zval *obj2)
 {
@@ -754,7 +746,6 @@ void php_driver_define_DefaultTable()
   php_driver_default_table_ce->create_object = php_driver_default_table_new;
 
   memcpy(&php_driver_default_table_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-  php_driver_default_table_handlers.get_properties  = php_driver_default_table_properties;
   php_driver_default_table_handlers.get_gc          = php_driver_type_default_table_gc;
   CASS_COMPAT_SET_COMPARE_HANDLER(php_driver_default_table_handlers, php_driver_default_table_compare);
   php_driver_default_table_handlers.clone_obj = NULL;

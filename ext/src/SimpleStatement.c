@@ -48,14 +48,6 @@ static zend_function_entry php_driver_simple_statement_methods[] = {
 
 static zend_object_handlers php_driver_simple_statement_handlers;
 
-static HashTable *
-php_driver_simple_statement_properties(zval *object)
-{
-  HashTable *props = zend_std_get_properties(object);
-
-  return props;
-}
-
 static int
 php_driver_simple_statement_compare(zval *obj1, zval *obj2)
 {
@@ -101,7 +93,6 @@ void php_driver_define_SimpleStatement()
   php_driver_simple_statement_ce->create_object = php_driver_simple_statement_new;
 
   memcpy(&php_driver_simple_statement_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-  php_driver_simple_statement_handlers.get_properties  = php_driver_simple_statement_properties;
   CASS_COMPAT_SET_COMPARE_HANDLER(php_driver_simple_statement_handlers, php_driver_simple_statement_compare);
   php_driver_simple_statement_handlers.clone_obj = NULL;
 }

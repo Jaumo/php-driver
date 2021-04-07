@@ -264,14 +264,6 @@ static zend_function_entry php_driver_ssl_builder_methods[] = {
 
 static zend_object_handlers php_driver_ssl_builder_handlers;
 
-static HashTable *
-php_driver_ssl_builder_properties(zval *object)
-{
-  HashTable *props = zend_std_get_properties(object);
-
-  return props;
-}
-
 static int
 php_driver_ssl_builder_compare(zval *obj1, zval *obj2)
 {
@@ -333,6 +325,5 @@ void php_driver_define_SSLOptionsBuilder()
   php_driver_ssl_builder_ce->create_object = php_driver_ssl_builder_new;
 
   memcpy(&php_driver_ssl_builder_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-  php_driver_ssl_builder_handlers.get_properties  = php_driver_ssl_builder_properties;
   CASS_COMPAT_SET_COMPARE_HANDLER(php_driver_ssl_builder_handlers, php_driver_ssl_builder_compare);
 }
