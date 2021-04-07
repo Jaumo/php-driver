@@ -388,7 +388,7 @@ PHP_METHOD(DefaultTable, column)
   self = PHP_DRIVER_GET_TABLE(getThis());
   meta = cass_table_meta_column_by_name(self->meta, name);
   if (meta == NULL) {
-    RETURN_FALSE
+    RETURN_FALSE;
   }
 
   column = php_driver_create_column(self->schema, meta);
