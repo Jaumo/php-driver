@@ -520,7 +520,7 @@ php_driver_decimal_gc(zval *object, zval **table, int *n)
 }
 
 static HashTable*
-php_driver_decimal_properties(zval *object)
+php_driver_decimal_properties(CASS_COMPAT_OBJECT_HANDLER_TYPE *object)
 {
   char* string;
   int string_len;
@@ -528,7 +528,7 @@ php_driver_decimal_properties(zval *object)
   zval value;
   zval scale;
 
-  php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(object);
+  php_driver_numeric *self = CASS_COMPAT_GET_NUMERIC(object);
   HashTable         *props = zend_std_get_properties(object);
 
   type = php_driver_type_scalar(CASS_VALUE_TYPE_DECIMAL);

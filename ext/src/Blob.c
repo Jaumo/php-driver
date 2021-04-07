@@ -121,14 +121,14 @@ php_driver_blob_gc(zval *object, zval **table, int *n)
 }
 
 static HashTable *
-php_driver_blob_properties(zval *object)
+php_driver_blob_properties(CASS_COMPAT_OBJECT_HANDLER_TYPE *object)
 {
   char *hex;
   int hex_len;
   zval type;
   zval bytes;
 
-  php_driver_blob *self = PHP_DRIVER_GET_BLOB(object);
+  php_driver_blob *self = CASS_COMPAT_GET_BLOB(object);
   HashTable      *props = zend_std_get_properties(object);
 
   type = php_driver_type_scalar(CASS_VALUE_TYPE_BLOB);

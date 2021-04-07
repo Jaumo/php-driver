@@ -190,13 +190,13 @@ php_driver_timestamp_gc(zval *object, zval **table, int *n)
 }
 
 static HashTable *
-php_driver_timestamp_properties(zval *object)
+php_driver_timestamp_properties(CASS_COMPAT_OBJECT_HANDLER_TYPE *object)
 {
   zval type;
   zval seconds;
   zval microseconds;
 
-  php_driver_timestamp *self = PHP_DRIVER_GET_TIMESTAMP(object);
+  php_driver_timestamp *self = CASS_COMPAT_GET_TIMESTAMP(object);
   HashTable           *props = zend_std_get_properties(object);
 
   long sec  = (long) (self->timestamp / 1000);

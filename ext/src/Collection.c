@@ -320,11 +320,11 @@ php_driver_collection_gc(zval *object, zval **table, int *n)
 }
 
 static HashTable *
-php_driver_collection_properties(zval *object)
+php_driver_collection_properties(CASS_COMPAT_OBJECT_HANDLER_TYPE *object)
 {
   zval values;
 
-  php_driver_collection  *self = PHP_DRIVER_GET_COLLECTION(object);
+  php_driver_collection  *self = CASS_COMPAT_GET_COLLECTION(object);
   HashTable             *props = zend_std_get_properties(object);
 
   zend_hash_str_update(props, "type", strlen("type"), &(self->type));
@@ -371,8 +371,7 @@ php_driver_collection_compare(zval *obj1, zval *obj2)
 
   while (CASS_ZEND_HASH_GET_CURRENT_DATA_EX(&collection1->values, current1, &pos1) &&
          CASS_ZEND_HASH_GET_CURRENT_DATA_EX(&collection2->values, current2, &pos2)) {
-    result = php_driver_value_compare(current1,
-                                         current2);
+    result = php_driver_value_compare(current1, current2);
     if (result != 0) return result;
     zend_hash_move_forward_ex(&collection1->values, &pos1);
     zend_hash_move_forward_ex(&collection2->values, &pos2);

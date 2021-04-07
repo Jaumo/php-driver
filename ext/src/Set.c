@@ -307,11 +307,11 @@ php_driver_set_gc(zval *object, zval **table, int *n)
 }
 
 static HashTable *
-php_driver_set_properties(zval *object)
+php_driver_set_properties(CASS_COMPAT_OBJECT_HANDLER_TYPE *object)
 {
   zval values;
 
-  php_driver_set *self = PHP_DRIVER_GET_SET(object);
+  php_driver_set *self = CASS_COMPAT_GET_SET(object);
   HashTable     *props = zend_std_get_properties(object);
 
 

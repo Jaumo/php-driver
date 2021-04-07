@@ -462,12 +462,12 @@ php_driver_map_gc(zval *object, zval **table, int *n)
 }
 
 static HashTable *
-php_driver_map_properties(zval *object)
+php_driver_map_properties(CASS_COMPAT_OBJECT_HANDLER_TYPE *object)
 {
   zval keys;
   zval values;
 
-  php_driver_map *self = PHP_DRIVER_GET_MAP(object);
+  php_driver_map *self = CASS_COMPAT_GET_MAP(object);
   HashTable     *props = zend_std_get_properties(object);
 
 

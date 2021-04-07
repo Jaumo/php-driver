@@ -1034,7 +1034,7 @@ php_driver_cluster_builder_gc(zval *object, zval **table, int *n)
 }
 
 static HashTable*
-php_driver_cluster_builder_properties(zval *object)
+php_driver_cluster_builder_properties(CASS_COMPAT_OBJECT_HANDLER_TYPE *object)
 {
   zval contactPoints;
   zval loadBalancingPolicy;
@@ -1070,7 +1070,7 @@ php_driver_cluster_builder_properties(zval *object)
   zval randomizedContactPoints;
   zval connectionHeartbeatInterval;
 
-  php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(object);
+  php_driver_cluster_builder *self = CASS_COMPAT_GET_CLUSTER_BUILDER(object);
   HashTable *props = zend_std_get_properties(object);
 
 

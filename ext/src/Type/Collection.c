@@ -132,9 +132,9 @@ php_driver_type_collection_gc(zval *object, zval **table, int *n)
 }
 
 static HashTable *
-php_driver_type_collection_properties(zval *object)
+php_driver_type_collection_properties(CASS_COMPAT_OBJECT_HANDLER_TYPE *object)
 {
-  php_driver_type *self  = PHP_DRIVER_GET_TYPE(object);
+  php_driver_type *self  = CASS_COMPAT_GET_TYPE(object);
   HashTable      *props = zend_std_get_properties(object);
 
   zend_hash_str_update(props, "valueType", strlen("valueType"), &(self->data.collection.value_type));

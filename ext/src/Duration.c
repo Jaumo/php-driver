@@ -226,10 +226,10 @@ static zend_function_entry php_driver_duration_methods[] = {
 static php_driver_value_handlers php_driver_duration_handlers;
 
 static HashTable *
-php_driver_duration_properties(zval *object)
+php_driver_duration_properties(CASS_COMPAT_OBJECT_HANDLER_TYPE *object)
 {
   HashTable *props = zend_std_get_properties(object);
-  php_driver_duration  *self = PHP_DRIVER_GET_DURATION(object);
+  php_driver_duration  *self = CASS_COMPAT_GET_DURATION(object);
 
   zval wrapped_months, wrapped_days, wrapped_nanos;
 

@@ -126,14 +126,14 @@ php_driver_uuid_gc(zval *object, zval **table, int *n)
 }
 
 static HashTable *
-php_driver_uuid_properties(zval *object)
+php_driver_uuid_properties(CASS_COMPAT_OBJECT_HANDLER_TYPE *object)
 {
   char string[CASS_UUID_STRING_LENGTH];
   zval type;
   zval uuid;
   zval version;
 
-  php_driver_uuid *self = PHP_DRIVER_GET_UUID(object);
+  php_driver_uuid *self = CASS_COMPAT_GET_UUID(object);
   HashTable      *props = zend_std_get_properties(object);
 
   cass_uuid_string(self->uuid, string);

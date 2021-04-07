@@ -109,13 +109,13 @@ php_driver_inet_gc(zval *object, zval **table, int *n)
 }
 
 static HashTable *
-php_driver_inet_properties(zval *object)
+php_driver_inet_properties(CASS_COMPAT_OBJECT_HANDLER_TYPE *object)
 {
   char *string;
   zval type;
   zval address;
 
-  php_driver_inet *self = PHP_DRIVER_GET_INET(object);
+  php_driver_inet *self = CASS_COMPAT_GET_INET(object);
   HashTable      *props = zend_std_get_properties(object);
 
   type = php_driver_type_scalar(CASS_VALUE_TYPE_INET);

@@ -151,11 +151,39 @@ cass_string_compare(zend_string *s1, zend_string *s2)
 #if PHP_VERSION_ID >= 80000
 #define CASS_COMPAT_GET_NUMERIC(obj) php_driver_numeric_object_fetch(obj)
 #define CASS_COMPAT_GET_TYPE(obj) php_driver_type_object_fetch(obj)
+#define CASS_COMPAT_GET_BLOB(obj) php_driver_blob_object_fetch(obj)
+#define CASS_COMPAT_GET_COLLECTION(obj) php_driver_collection_object_fetch(obj)
+#define CASS_COMPAT_GET_DATE(obj) php_driver_date_object_fetch(obj)
+#define CASS_COMPAT_GET_DURATION(obj) php_driver_duration_object_fetch(obj)
+#define CASS_COMPAT_GET_INET(obj) php_driver_inet_object_fetch(obj)
+#define CASS_COMPAT_GET_MAP(obj) php_driver_map_object_fetch(obj)
+#define CASS_COMPAT_GET_SET(obj) php_driver_set_object_fetch(obj)
+#define CASS_COMPAT_GET_TIME(obj) php_driver_time_object_fetch(obj)
+#define CASS_COMPAT_GET_TIMESTAMP(obj) php_driver_timestamp_object_fetch(obj)
+#define CASS_COMPAT_GET_UUID(obj) php_driver_uuid_object_fetch(obj)
+#define CASS_COMPAT_GET_TUPLE(obj) php_driver_tuple_object_fetch(obj)
+#define CASS_COMPAT_GET_USER_TYPE_VALUE(obj) php_driver_user_type_value_object_fetch(obj)
+#define CASS_COMPAT_GET_CLUSTER_BUILDER(obj) php_driver_cluster_builder_object_fetch(obj)
+
 #define CASS_COMPAT_OBJECT_HANDLER_TYPE zend_object
 #define CASS_COMPAT_SET_COMPARE_HANDLER(ref, handler) ref.compare = handler
 #else
 #define CASS_COMPAT_GET_NUMERIC(obj) php_driver_numeric_object_fetch(Z_OBJ_P(obj))
 #define CASS_COMPAT_GET_TYPE(obj) PHP_DRIVER_GET_TYPE(obj)
+#define CASS_COMPAT_GET_BLOB(obj) PHP_DRIVER_GET_BLOB(obj)
+#define CASS_COMPAT_GET_COLLECTION(obj) PHP_DRIVER_GET_COLLECTION(obj)
+#define CASS_COMPAT_GET_DATE(obj) PHP_DRIVER_GET_DATE(obj)
+#define CASS_COMPAT_GET_DURATION(obj) PHP_DRIVER_GET_DURATION(obj)
+#define CASS_COMPAT_GET_INET(obj) PHP_DRIVER_GET_INET(obj)
+#define CASS_COMPAT_GET_MAP(obj) PHP_DRIVER_GET_MAP(obj)
+#define CASS_COMPAT_GET_SET(obj) PHP_DRIVER_GET_SET(obj)
+#define CASS_COMPAT_GET_TIME(obj) PHP_DRIVER_GET_TIME(obj)
+#define CASS_COMPAT_GET_TIMESTAMP(obj) PHP_DRIVER_GET_TIMESTAMP(obj)
+#define CASS_COMPAT_GET_UUID(obj) PHP_DRIVER_GET_UUID(obj)
+#define CASS_COMPAT_GET_TUPLE(obj) PHP_DRIVER_GET_TUPLE(obj)
+#define CASS_COMPAT_GET_USER_TYPE_VALUE(obj) PHP_DRIVER_GET_USER_TYPE_VALUE(obj)
+#define CASS_COMPAT_GET_CLUSTER_BUILDER(obj) PHP_DRIVER_GET_CLUSTER_BUILDER(obj)
+
 #define CASS_COMPAT_OBJECT_HANDLER_TYPE zval
 #define CASS_COMPAT_SET_COMPARE_HANDLER(ref, handler) ref.compare_objects = handler
 #define ZEND_COMPARE_OBJECTS_FALLBACK(op1, op2)         \

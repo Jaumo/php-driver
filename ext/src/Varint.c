@@ -379,14 +379,14 @@ php_driver_varint_gc(zval *object, zval **table, int *n)
 }
 
 static HashTable *
-php_driver_varint_properties(zval *object)
+php_driver_varint_properties(CASS_COMPAT_OBJECT_HANDLER_TYPE *object)
 {
   char *string;
   int string_len;
   zval type;
   zval value;
 
-  php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(object);
+  php_driver_numeric *self = CASS_COMPAT_GET_NUMERIC(object);
   HashTable         *props = zend_std_get_properties(object);
 
   php_driver_format_integer(self->data.varint.value, &string, &string_len);

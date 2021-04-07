@@ -192,12 +192,12 @@ php_driver_date_gc(zval *object, zval **table, int *n)
 }
 
 static HashTable *
-php_driver_date_properties(zval *object)
+php_driver_date_properties(CASS_COMPAT_OBJECT_HANDLER_TYPE *object)
 {
   zval type;
   zval seconds;
 
-  php_driver_date *self = PHP_DRIVER_GET_DATE(object);
+  php_driver_date *self = CASS_COMPAT_GET_DATE(object);
   HashTable *props = zend_std_get_properties(object);
 
   type = php_driver_type_scalar(CASS_VALUE_TYPE_DATE);

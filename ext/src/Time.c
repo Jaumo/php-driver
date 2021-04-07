@@ -220,12 +220,12 @@ php_driver_time_gc(zval *object, zval **table, int *n)
 }
 
 static HashTable *
-php_driver_time_properties(zval *object)
+php_driver_time_properties(CASS_COMPAT_OBJECT_HANDLER_TYPE *object)
 {
   zval type;
   zval nanoseconds;
 
-  php_driver_time *self = PHP_DRIVER_GET_TIME(object);
+  php_driver_time *self = CASS_COMPAT_GET_TIME(object);
   HashTable *props = zend_std_get_properties(object);
 
   type = php_driver_type_scalar(CASS_VALUE_TYPE_TIME);

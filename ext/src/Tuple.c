@@ -296,11 +296,11 @@ php_driver_tuple_gc(zval *object, zval **table, int *n)
 }
 
 static HashTable *
-php_driver_tuple_properties(zval *object)
+php_driver_tuple_properties(CASS_COMPAT_OBJECT_HANDLER_TYPE *object)
 {
   zval values;
 
-  php_driver_tuple  *self = PHP_DRIVER_GET_TUPLE(object);
+  php_driver_tuple  *self = CASS_COMPAT_GET_TUPLE(object);
   HashTable             *props = zend_std_get_properties(object);
 
   zend_hash_str_update(props, "type", strlen("type"), &(self->type));

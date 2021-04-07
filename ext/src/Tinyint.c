@@ -433,12 +433,12 @@ php_driver_tinyint_gc(zval *object, zval **table, int *n)
 }
 
 static HashTable *
-php_driver_tinyint_properties(zval *object)
+php_driver_tinyint_properties(CASS_COMPAT_OBJECT_HANDLER_TYPE *object)
 {
   zval type;
   zval value;
 
-  php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(object);
+  php_driver_numeric *self = CASS_COMPAT_GET_NUMERIC(object);
   HashTable         *props = zend_std_get_properties(object);
 
   type = php_driver_type_scalar(CASS_VALUE_TYPE_TINY_INT);
