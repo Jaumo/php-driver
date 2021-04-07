@@ -100,7 +100,7 @@ php_driver_value_compare(zval* zvalue1, zval* zvalue2) {
     return zend_binary_zval_strcmp(zvalue1, zvalue2);
 
   case IS_OBJECT:
-    return Z_OBJ_P(zvalue1)->handlers->compare_objects(zvalue1, zvalue2);
+    return zend_compare_objects(zvalue1, zvalue2);
 
   default:
     break;
