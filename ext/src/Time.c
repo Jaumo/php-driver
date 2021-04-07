@@ -158,7 +158,7 @@ PHP_METHOD(Time, fromDateTime)
     return;
   }
 
-  zend_call_method_with_0_params(zdatetime,
+  CASS_COMPAT_zend_call_method_with_0_params(zdatetime,
                                  php_date_get_date_ce(),
                                  NULL,
                                  "gettimestamp",

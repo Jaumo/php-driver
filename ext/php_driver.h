@@ -167,6 +167,9 @@ cass_string_compare(zend_string *s1, zend_string *s2)
 
 #define CASS_COMPAT_OBJECT_HANDLER_TYPE zend_object
 #define CASS_COMPAT_SET_COMPARE_HANDLER(ref, handler) ref.compare = handler
+
+#define CASS_COMPAT_zend_call_method_with_0_params(obj, obj_ce, fn_proxy, function_name, retval) \
+  zend_call_method_with_0_params(Z_OBJ_P(obj), obj_ce, fn_proxy, function_name, retval)
 #else
 #define CASS_COMPAT_GET_NUMERIC(obj) php_driver_numeric_object_fetch(Z_OBJ_P(obj))
 #define CASS_COMPAT_GET_TYPE(obj) PHP_DRIVER_GET_TYPE(obj)
@@ -189,6 +192,8 @@ cass_string_compare(zend_string *s1, zend_string *s2)
 #define ZEND_COMPARE_OBJECTS_FALLBACK(op1, op2)         \
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))               \
     return 1; /* different classes */
+#define CASS_COMPAT_zend_call_method_with_0_params(obj, obj_ce, fn_proxy, function_name, retval) \
+  zend_call_method_with_0_params(obj, obj_ce, fn_proxy, function_name, retval)
 #endif
 
 
