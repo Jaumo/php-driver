@@ -480,9 +480,9 @@ php_driver_smallint_hash_value(zval *obj)
 }
 
 static int
-php_driver_smallint_cast(zval *object, zval *retval, int type)
+php_driver_smallint_cast(CASS_COMPAT_OBJECT_HANDLER_TYPE *object, zval *retval, int type)
 {
-  php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(object);
+  php_driver_numeric *self = CASS_COMPAT_GET_NUMERIC(object);
 
   switch (type) {
   case IS_LONG:
@@ -494,8 +494,6 @@ php_driver_smallint_cast(zval *object, zval *retval, int type)
   default:
      return FAILURE;
   }
-
-  return SUCCESS;
 }
 
 static void

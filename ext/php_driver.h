@@ -148,6 +148,16 @@ cass_string_compare(zend_string *s1, zend_string *s2)
   }                                         \
 } while(0)
 
+#if PHP_VERSION_ID >= 80000
+#define CASS_COMPAT_GET_NUMERIC(obj) php_driver_numeric_object_fetch(obj)
+#define CASS_COMPAT_OBJECT_HANDLER_TYPE zend_object
+#else
+#define CASS_COMPAT_GET_NUMERIC(obj) php_driver_numeric_object_fetch(Z_OBJ_P(obj))
+#define CASS_COMPAT_OBJECT_HANDLER_TYPE zval
+#endif
+
+
+
 
 extern zend_module_entry php_driver_module_entry;
 
