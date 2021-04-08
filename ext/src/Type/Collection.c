@@ -124,7 +124,7 @@ static zend_function_entry php_driver_type_collection_methods[] = {
 static zend_object_handlers php_driver_type_collection_handlers;
 
 static HashTable *
-php_driver_type_collection_gc(zval *object, zval **table, int *n)
+php_driver_type_collection_gc(CASS_COMPAT_OBJECT_HANDLER_TYPE *object, zval **table, int *n)
 {
   *table = NULL;
   *n = 0;

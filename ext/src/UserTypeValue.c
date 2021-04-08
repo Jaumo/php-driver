@@ -320,7 +320,7 @@ static zend_function_entry php_driver_user_type_value_methods[] = {
 static php_driver_value_handlers php_driver_user_type_value_handlers;
 
 static HashTable *
-php_driver_user_type_value_gc(zval *object, zval **table, int *n)
+php_driver_user_type_value_gc(CASS_COMPAT_OBJECT_HANDLER_TYPE *object, zval **table, int *n)
 {
   *table = NULL;
   *n = 0;

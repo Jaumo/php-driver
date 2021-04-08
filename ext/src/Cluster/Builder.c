@@ -1026,7 +1026,7 @@ static zend_function_entry php_driver_cluster_builder_methods[] = {
 static zend_object_handlers php_driver_cluster_builder_handlers;
 
 static HashTable*
-php_driver_cluster_builder_gc(zval *object, zval **table, int *n)
+php_driver_cluster_builder_gc(CASS_COMPAT_OBJECT_HANDLER_TYPE *object, zval **table, int *n)
 {
   *table = NULL;
   *n = 0;
