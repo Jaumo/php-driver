@@ -4,7 +4,7 @@ FROM php:$PHP_VERSION-cli-buster
 ENV DEBIAN_FRONTEND noninteractive
 ENV LC_ALL C.UTF-8
 
-ENV BASE_DEPS curl wget git lsof unzip apt-transport-https ca-certificates dirmngr gnupg software-properties-common sudo htop python-pip
+ENV BASE_DEPS curl wget git lsof unzip apt-transport-https ca-certificates dirmngr gnupg software-properties-common sudo htop python-pip vim gdb
 RUN apt-get update && apt-get install -y $BASE_DEPS
 
 # Install OpenJDK8 and fix the man directory so it does not fail
