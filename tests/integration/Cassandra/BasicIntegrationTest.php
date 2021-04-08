@@ -138,5 +138,9 @@ abstract class BasicIntegrationTest extends \PHPUnit\Framework\TestCase {
         unset($this->integration);
         unset($this->ccm);
         unset($this->session);
+
+        // explicitly running the garbage collector after every test allows for quicker
+        // (and less flaky) detection of gc related extension errors
+        gc_collect_cycles();
     }
 }
