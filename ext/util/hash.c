@@ -109,7 +109,7 @@ php_driver_value_compare(zval* zvalue1, zval* zvalue2) {
   return 1;
 }
 
-int php_driver_data_compare(const void* a, const void* b) {
+int php_driver_data_compare(CASS_COMPAT_HASH_SORT_TYPE a, CASS_COMPAT_HASH_SORT_TYPE b) {
   Bucket *f, *s;
   zval *first, *second;
 

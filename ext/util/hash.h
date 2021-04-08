@@ -51,7 +51,7 @@ struct php_driver_set_entry_ {
 
 unsigned php_driver_value_hash(zval* zvalue);
 int php_driver_value_compare(zval* zvalue1, zval* zvalue2);
-int php_driver_data_compare(const void* a, const void* b);
+int php_driver_data_compare(CASS_COMPAT_HASH_SORT_TYPE a, CASS_COMPAT_HASH_SORT_TYPE b);
 
 unsigned php_driver_mpz_hash(unsigned seed, mpz_t n);
 
