@@ -1,0 +1,10 @@
+ARG PHP_VERSION=7.4.16
+ARG DOCKER_TAG=php-ext-cassandra
+
+FROM $DOCKER_TAG/dev:$PHP_VERSION
+
+COPY / /code
+WORKDIR /code
+
+RUN cd ext && phpize && ./configure && make -j$(nproc)  && make install && docker-php-ext-enable cassandra
+RUN composer install
