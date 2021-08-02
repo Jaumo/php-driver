@@ -148,6 +148,15 @@ cass_string_compare(zend_string *s1, zend_string *s2)
   }                                         \
 } while(0)
 
+
+#if PHP_VERSION_ID >= 80100
+#define CASS_COMPAT_STREAM_STR_FROM_CHAR(c) zend_string_init(c, strlen(c), 0)
+
+#else
+#define CASS_COMPAT_STREAM_STR_FROM_CHAR(c) c
+#endif
+
+
 #if PHP_VERSION_ID >= 80000
 #define CASS_COMPAT_GET_NUMERIC(obj) php_driver_numeric_object_fetch(obj)
 #define CASS_COMPAT_GET_TYPE(obj) php_driver_type_object_fetch(obj)

@@ -116,8 +116,11 @@ PHP_METHOD(SSLOptionsBuilder, withTrustedCerts)
 
     }
 
+    #if PHP_VERSION_ID >= 80100
+    php_stat(Z_STR_P(path), FS_IS_R, &readable);
+    #else
     php_stat(Z_STRVAL_P(path), Z_STRLEN_P(path), FS_IS_R, &readable);
-
+    #endif
     if (Z_TYPE_P(&readable) == IS_FALSE) {
       zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
         "The path '%s' doesn't exist or is not readable", Z_STRVAL_P(path));
@@ -176,7 +179,14 @@ PHP_METHOD(SSLOptionsBuilder, withClientCert)
     return;
   }
 
-  php_stat(client_cert, client_cert_len, FS_IS_R, &readable);
+  #if PHP_VERSION_ID >= 80100
+    zend_string *client_cert_str = zend_string_init(client_cert, client_cert_len, 0);
+    php_stat(client_cert_str, FS_IS_R, &readable);
+    zend_string_release(client_cert_str);
+  #else
+    php_stat(client_cert, client_cert_len, FS_IS_R, &readable);
+  #endif
+
 
   if (Z_TYPE_P(&readable) == IS_FALSE) {
     zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
@@ -207,7 +217,13 @@ PHP_METHOD(SSLOptionsBuilder, withPrivateKey)
     return;
   }
 
-  php_stat(private_key, private_key_len, FS_IS_R, &readable);
+  #if PHP_VERSION_ID >= 80100
+    zend_string *private_key_str = zend_string_init(private_key, private_key_len, 0);
+    php_stat(private_key_str, FS_IS_R, &readable);
+    zend_string_release(private_key_str);
+  #else
+    php_stat(private_key, private_key_len, FS_IS_R, &readable);
+  #endif
 
   if (Z_TYPE_P(&readable) == IS_FALSE) {
     zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
