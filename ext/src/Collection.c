@@ -439,7 +439,7 @@ void php_driver_define_Collection()
   CASS_COMPAT_SET_COMPARE_HANDLER(php_driver_collection_handlers.std, php_driver_collection_compare);
   php_driver_collection_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_collection_ce->create_object = php_driver_collection_new;
-  zend_class_implements(php_driver_collection_ce, 2, spl_ce_Countable, zend_ce_iterator);
+  zend_class_implements(php_driver_collection_ce, 2, zend_ce_countable, zend_ce_iterator);
 
   php_driver_collection_handlers.hash_value = php_driver_collection_hash_value;
   php_driver_collection_handlers.std.clone_obj = NULL;

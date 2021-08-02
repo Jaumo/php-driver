@@ -449,7 +449,7 @@ void php_driver_define_UserTypeValue()
   CASS_COMPAT_SET_COMPARE_HANDLER(php_driver_user_type_value_handlers.std, php_driver_user_type_value_compare);
   php_driver_user_type_value_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_user_type_value_ce->create_object = php_driver_user_type_value_new;
-  zend_class_implements(php_driver_user_type_value_ce, 2, spl_ce_Countable, zend_ce_iterator);
+  zend_class_implements(php_driver_user_type_value_ce, 2, zend_ce_countable, zend_ce_iterator);
 
   php_driver_user_type_value_handlers.hash_value = php_driver_user_type_value_hash_value;
   php_driver_user_type_value_handlers.std.clone_obj = NULL;

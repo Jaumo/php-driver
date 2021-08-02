@@ -595,7 +595,7 @@ void php_driver_define_Map()
   CASS_COMPAT_SET_COMPARE_HANDLER(php_driver_map_handlers.std, php_driver_map_compare);
   php_driver_map_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_map_ce->create_object = php_driver_map_new;
-  zend_class_implements(php_driver_map_ce, 3, spl_ce_Countable, zend_ce_iterator, zend_ce_arrayaccess);
+  zend_class_implements(php_driver_map_ce, 3, zend_ce_countable, zend_ce_iterator, zend_ce_arrayaccess);
 
   php_driver_map_handlers.hash_value = php_driver_map_hash_value;
   php_driver_map_handlers.std.clone_obj = NULL;

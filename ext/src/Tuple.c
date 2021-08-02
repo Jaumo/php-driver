@@ -417,7 +417,7 @@ void php_driver_define_Tuple()
   CASS_COMPAT_SET_COMPARE_HANDLER(php_driver_tuple_handlers.std, php_driver_tuple_compare);
   php_driver_tuple_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_tuple_ce->create_object = php_driver_tuple_new;
-  zend_class_implements(php_driver_tuple_ce, 2, spl_ce_Countable, zend_ce_iterator);
+  zend_class_implements(php_driver_tuple_ce, 2, zend_ce_countable, zend_ce_iterator);
 
   php_driver_tuple_handlers.hash_value = php_driver_tuple_hash_value;
   php_driver_tuple_handlers.std.clone_obj = NULL;
