@@ -1,4 +1,4 @@
-PHP_VERSION=8.0.8
+PHP_VERSION=8.1-rc
 DOCKER_TAG=php-ext-cassandra
 
 DEV_IMAGE=$(DOCKER_TAG)/dev:$(PHP_VERSION)
