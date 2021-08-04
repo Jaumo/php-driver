@@ -290,6 +290,24 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_count, ZEND_RETURN_VALUE, 0, IS_LONG, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_current, ZEND_RETURN_VALUE, 0, CASS_COMPAT_IS_MIXED, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_key, ZEND_RETURN_VALUE, 0, CASS_COMPAT_IS_MIXED, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_next, ZEND_RETURN_VALUE, 0, IS_VOID, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_valid, ZEND_RETURN_VALUE, 0, _IS_BOOL, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_rewind, ZEND_RETURN_VALUE, 0, IS_VOID, 0)
+ZEND_END_ARG_INFO()
+
 static zend_function_entry php_driver_collection_methods[] = {
   PHP_ME(Collection, __construct, arginfo__construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
   PHP_ME(Collection, type, arginfo_none, ZEND_ACC_PUBLIC)
@@ -297,15 +315,15 @@ static zend_function_entry php_driver_collection_methods[] = {
   PHP_ME(Collection, add, arginfo_value, ZEND_ACC_PUBLIC)
   PHP_ME(Collection, get, arginfo_index, ZEND_ACC_PUBLIC)
   PHP_ME(Collection, find, arginfo_value, ZEND_ACC_PUBLIC)
-  /* Countable */
-  PHP_ME(Collection, count, arginfo_none, ZEND_ACC_PUBLIC)
-  /* Iterator */
-  PHP_ME(Collection, current, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Collection, key, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Collection, next, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Collection, valid, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Collection, rewind, arginfo_none, ZEND_ACC_PUBLIC)
   PHP_ME(Collection, remove, arginfo_index, ZEND_ACC_PUBLIC)
+  /* Countable */
+  PHP_ME(Collection, count, arginfo_count, ZEND_ACC_PUBLIC)
+  /* Iterator */
+  PHP_ME(Collection, current, arginfo_current, ZEND_ACC_PUBLIC)
+  PHP_ME(Collection, key, arginfo_key, ZEND_ACC_PUBLIC)
+  PHP_ME(Collection, next, arginfo_next, ZEND_ACC_PUBLIC)
+  PHP_ME(Collection, valid, arginfo_valid, ZEND_ACC_PUBLIC)
+  PHP_ME(Collection, rewind, arginfo_rewind, ZEND_ACC_PUBLIC)
   PHP_FE_END
 };
 

@@ -173,6 +173,7 @@ cass_string_compare(zend_string *s1, zend_string *s2)
 #define CASS_COMPAT_GET_TUPLE(obj) php_driver_tuple_object_fetch(obj)
 #define CASS_COMPAT_GET_USER_TYPE_VALUE(obj) php_driver_user_type_value_object_fetch(obj)
 #define CASS_COMPAT_GET_CLUSTER_BUILDER(obj) php_driver_cluster_builder_object_fetch(obj)
+#define CASS_COMPAT_IS_MIXED IS_MIXED
 
 #define CASS_COMPAT_OBJECT_HANDLER_TYPE zend_object
 #define CASS_COMPAT_SET_COMPARE_HANDLER(ref, handler) ref.compare = handler
@@ -195,6 +196,7 @@ cass_string_compare(zend_string *s1, zend_string *s2)
 #define CASS_COMPAT_GET_TUPLE(obj) PHP_DRIVER_GET_TUPLE(obj)
 #define CASS_COMPAT_GET_USER_TYPE_VALUE(obj) PHP_DRIVER_GET_USER_TYPE_VALUE(obj)
 #define CASS_COMPAT_GET_CLUSTER_BUILDER(obj) PHP_DRIVER_GET_CLUSTER_BUILDER(obj)
+#define CASS_COMPAT_IS_MIXED IS_UNDEF
 
 #define CASS_COMPAT_OBJECT_HANDLER_TYPE zval
 #define CASS_COMPAT_SET_COMPARE_HANDLER(ref, handler) ref.compare_objects = handler
