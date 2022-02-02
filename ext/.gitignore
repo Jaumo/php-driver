@@ -9,6 +9,7 @@
 *.libs
 *.sw*
 *.loT
+*.dep
 Makefile
 Makefile.fragments
 Makefile.global
