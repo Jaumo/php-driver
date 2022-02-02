@@ -1,5 +1,5 @@
-PHP_VERSION=8.1-rc
-DOCKER_TAG=php-ext-cassandra
+PHP_VERSION ?= 8.1.2
+DOCKER_TAG ?= php-ext-cassandra
 
 DEV_IMAGE=$(DOCKER_TAG)/dev:$(PHP_VERSION)
 FULL_IMAGE=$(DOCKER_TAG)/full:$(PHP_VERSION)
