@@ -20,10 +20,11 @@ RUN apt-get update && apt-get install -y cassandra
 RUN pip install ccm
 
 # Install composer for PHP dependency management
-COPY --from=composer:1 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+RUN composer self-update
 
 # Install libcassandra
-ARG CASSANDRA_CPP_VERSION=2.15.3
+ARG CASSANDRA_CPP_VERSION=2.16.0
 ENV DEP_CASSANDRA zlib1g libicu63 libuv1 libgmp10 uuid libssl1.1
 ENV DEP_CASSANDRA_DEV zlib1g-dev libicu-dev g++ make cmake libuv1-dev libgmp-dev uuid-dev libssl-dev
 
