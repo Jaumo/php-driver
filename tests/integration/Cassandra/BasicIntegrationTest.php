@@ -52,12 +52,6 @@ abstract class BasicIntegrationTest extends \PHPUnit\Framework\TestCase {
      */
     protected $numberDC1Nodes = 1;
     /**
-     * Number of nodes in data center two.
-     *
-     * @var int
-     */
-    protected $numberDC2Nodes = 0;
-    /**
      * Replication factor override.
      *
      * @var int
@@ -94,33 +88,45 @@ abstract class BasicIntegrationTest extends \PHPUnit\Framework\TestCase {
      */
     protected $tableNamePrefix;
     /**
-     * Flag to determine if client authentication should be enabled.
-     *
-     * @var bool
-     */
-    protected $isClientAuthentication = false;
-    /**
-     * Flag to determine if SSL should be enabled.
-     *
-     * @var bool
-     */
-    protected $isSSL = false;
-    /**
      * Flag to determine if UDA/UDF functionality should be enabled.
      *
      * @var bool
      */
     protected $isUserDefinedAggregatesFunctions = false;
+    /**
+     * Share integration/cassandra setup across multiple test-methods in a testcase
+     *
+     * Has a positive performance impact
+     *
+     * @var Integration|null
+     */
+    protected static $sharedIntegration = null;
+
+    public static function setUpBeforeClass(): void
+    {
+        // Do not share integration across test boundaries
+        self::$sharedIntegration = null;
+    }
 
     /**
      * Setup the database for the integration tests.
      */
     protected function setUp(): void {
+        if (self::$sharedIntegration == null) {
+            self::$sharedIntegration = new Integration(
+                static::class,
+                "",
+                $this->numberDC1Nodes,
+                0,
+                $this->replicationFactor,
+                false,
+                false,
+                $this->isUserDefinedAggregatesFunctions
+            );
+        }
+
         // Initialize the database and establish a connection
-        $this->integration = new Integration(get_class(), $this->getName(false),
-            $this->numberDC1Nodes, $this->numberDC2Nodes,
-            $this->replicationFactor, $this->isClientAuthentication,
-            $this->isSSL, $this->isUserDefinedAggregatesFunctions);
+        $this->integration = self::$sharedIntegration;
         $this->ccm = $this->integration->ccm;
         $this->cluster = $this->integration->cluster;
         $this->session = $this->integration->session;
@@ -142,5 +148,9 @@ abstract class BasicIntegrationTest extends \PHPUnit\Framework\TestCase {
         // explicitly running the garbage collector after every test allows for quicker
         // (and less flaky) detection of gc related extension errors
         gc_collect_cycles();
+    }
+
+    protected function resetKeyspaceAfterEachTest() {
+        self::$sharedIntegration = null;
     }
 }

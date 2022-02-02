@@ -21,7 +21,7 @@ namespace Cassandra;
 /**
  * Schema metadata integration tests.
  */
-class SchemaMetadataIntegrationTest extends BasicIntegrationTest {
+final class SchemaMetadataIntegrationTest extends BasicIntegrationTest {
     /**
      * Schema snapshot associated with the $this->session connection.
      *
@@ -33,6 +33,8 @@ class SchemaMetadataIntegrationTest extends BasicIntegrationTest {
      * Setup the schema metadata for the schema metadata tests.
      */
     public function setUp(): void {
+        $this->resetKeyspaceAfterEachTest();
+
         // Determine if UDA/UDF functionality should be enabled
         $testName = $this->getName();
         if (strpos($testName, "UserDefined") !== false) {

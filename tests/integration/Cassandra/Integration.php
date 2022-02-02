@@ -18,6 +18,8 @@
 
 namespace Cassandra;
 
+use RuntimeException;
+
 /**
  * Base class to provide common integration test functionality.
  */
@@ -81,7 +83,7 @@ class Integration {
     /**
      * Create the integration helper instance.
      *
-     * @param $className Name of the class for the executed test.
+     * @param string $className Name of the class for the executed test.
      * @param string $testName Name of the test being executed.
      * @param int $numberDC1Nodes Number of nodes in data center one
      *                            (DEFAULT: 1).
@@ -127,51 +129,58 @@ class Integration {
                 $uniqueID;
         }
 
-        // Create the Cassandra cluster for the test
-        //TODO: Need to add the ability to switch the Cassandra version (command line)
-        $this->ccm = new \CCM(self::DEFAULT_CASSANDRA_VERSION, self::DEFAULT_IS_CCM_SILENT);
-        $this->ccm->setup($numberDC1Nodes, $numberDC2Nodes);
-        if ($isClientAuthentication) {
-            $this->ccm->setupClientVerification();
-        }
-        if ($isSSL) {
-            $this->ccm->setupSSL();
-        }
-        if ($isUserDefinedAggregatesFunctions) {
-            $this->ccm->setupUserDefinedFunctions();
-        }
-        $this->ccm->start();
+        while ($this->session == null) {
+            try {
+                // Create the Cassandra cluster for the test
+                //TODO: Need to add the ability to switch the Cassandra version (command line)
+                $this->ccm = new \CCM(self::DEFAULT_CASSANDRA_VERSION, self::DEFAULT_IS_CCM_SILENT);
+                $this->ccm->setup($numberDC1Nodes, $numberDC2Nodes);
+                if ($isClientAuthentication) {
+                    $this->ccm->setupClientVerification();
+                }
+                if ($isSSL) {
+                    $this->ccm->setupSSL();
+                }
+                if ($isUserDefinedAggregatesFunctions) {
+                    $this->ccm->setupUserDefinedFunctions();
+                }
+                $this->ccm->start();
 
-        // Determine replication strategy and generate the query
-        $replicationStrategy = "'SimpleStrategy', 'replication_factor': ";
-        if ($numberDC2Nodes > 0) {
-            $replicationStrategy = "'NetworkTopologyStrategy', 'dc1': " . $numberDC1Nodes . ", " .
-                "'dc2': " . $numberDC2Nodes;
-        } else {
-            if ($replicationFactor < 0) {
-                $replicationFactor = ($numberDC1Nodes % 2 == 0) ? $numberDC1Nodes / 2 : ($numberDC1Nodes + 1) / 2;
+                // Determine replication strategy and generate the query
+                $replicationStrategy = "'SimpleStrategy', 'replication_factor': ";
+                if ($numberDC2Nodes > 0) {
+                    $replicationStrategy = "'NetworkTopologyStrategy', 'dc1': " . $numberDC1Nodes . ", " .
+                        "'dc2': " . $numberDC2Nodes;
+                } else {
+                    if ($replicationFactor < 0) {
+                        $replicationFactor = ($numberDC1Nodes % 2 == 0) ? $numberDC1Nodes / 2 : ($numberDC1Nodes + 1) / 2;
+                    }
+                    $replicationStrategy .= $replicationFactor;
+                }
+                $query = sprintf(Integration::SIMPLE_KEYSPACE_FORMAT, $this->keyspaceName, $replicationStrategy);
+                if (self::isDebug() && self::isVerbose()) {
+                    fprintf(STDOUT, "Creating Keyspace: %s" . PHP_EOL, $query);
+                }
+
+                // Create the session and keyspace for the integration test
+                $this->cluster = \Cassandra::cluster()
+                    ->withContactPoints($this->getContactPoints(Integration::IP_ADDRESS, ($numberDC1Nodes + $numberDC2Nodes)))
+                    ->withPersistentSessions(false)
+                    ->build();
+                $this->session = $this->cluster->connect();
+                $this->session->execute($query);
+
+                // Update the session to use the new keyspace by default
+                $this->session->execute("USE " . $this->keyspaceName);
+
+                // Get the server version the session is connected to
+                $rows = $this->session->execute(self::SELECT_SERVER_VERSION);
+                $this->serverVersion = $rows->first()["release_version"];
+            } catch (RuntimeException $_) {
+                echo "WARNING: Cluster connect failed - resetting cluster through CCM\n";
+                $this->ccm->removeAllClusters();
             }
-            $replicationStrategy .= $replicationFactor;
         }
-        $query = sprintf(Integration::SIMPLE_KEYSPACE_FORMAT, $this->keyspaceName, $replicationStrategy);
-        if (self::isDebug() && self::isVerbose()) {
-            fprintf(STDOUT, "Creating Keyspace: %s" . PHP_EOL, $query);
-        }
-
-        // Create the session and keyspace for the integration test
-        $this->cluster = \Cassandra::cluster()
-            ->withContactPoints($this->getContactPoints(Integration::IP_ADDRESS, ($numberDC1Nodes + $numberDC2Nodes)))
-            ->withPersistentSessions(false)
-            ->build();
-        $this->session = $this->cluster->connect();
-        $this->session->execute($query);
-
-        // Update the session to use the new keyspace by default
-        $this->session->execute("USE " . $this->keyspaceName);
-
-        // Get the server version the session is connected to
-        $rows = $this->session->execute(self::SELECT_SERVER_VERSION);
-        $this->serverVersion = $rows->first()["release_version"];
     }
 
     public function __destruct() {

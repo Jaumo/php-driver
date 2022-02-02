@@ -59,6 +59,7 @@ class RetryPolicyIntegrationTest extends BasicIntegrationTest {
     public function setUp(): void {
         // Ensure RF = 3 (anything greater than 1 is good)
         $this->replicationFactor = 3;
+        $this->numberDC1Nodes = 1;
 
         // Process parent setup steps
         parent::setUp();

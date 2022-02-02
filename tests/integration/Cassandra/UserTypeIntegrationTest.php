@@ -29,7 +29,7 @@ class UserTypeIntegrationTest extends CollectionsIntegrationTest {
     /**
      * CQL for phone number user type
      */
-    const PHONE_USER_TYPE_CQL = "CREATE TYPE phone (alias text, number text)";
+    const PHONE_USER_TYPE_CQL = "CREATE TYPE IF NOT EXISTS phone (alias text, number text)";
     /**
      * Home phone number to use for inserts and assertions
      */
@@ -41,7 +41,7 @@ class UserTypeIntegrationTest extends CollectionsIntegrationTest {
     /**
      * CQL for address user type (requires phone user type being defined first)
      */
-    const ADDRESS_USER_TYPE_CQL = "CREATE TYPE address (street text, zip int, phone_numbers set<frozen<phone>>)";
+    const ADDRESS_USER_TYPE_CQL = "CREATE TYPE IF NOT EXISTS address (street text, zip int, phone_numbers set<frozen<phone>>)";
     /**
      * Street address to use for inserts and assertions
      */
@@ -64,7 +64,7 @@ class UserTypeIntegrationTest extends CollectionsIntegrationTest {
 
         // Create the table
         $this->session->execute(
-            "CREATE TABLE {$this->tableNamePrefix} " .
+            "CREATE TABLE IF NOT EXISTS {$this->tableNamePrefix} " .
             "(key timeuuid PRIMARY KEY, value frozen<address>)"
         );
     }
