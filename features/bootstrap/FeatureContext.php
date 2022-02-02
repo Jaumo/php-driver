@@ -317,7 +317,7 @@ class FeatureContext implements Context, SnippetAcceptingContext
     private function execute(array $env = array())
     {
         $command = array_merge([$this->phpBin], $this->phpBinOptions, ['example.php']);
-        $this->process = new Process($command, $this->workingDir);
+        $this->process = new Process($command, $this->workingDir, []);
 
         if (!empty($env)) {
             $this->process->setEnv(array_replace((array) $this->process->getEnv(), $env));
