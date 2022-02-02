@@ -88,7 +88,7 @@ class CCM
 
     public function start()
     {
-        $this->run('start', '--wait-other-notice', '--wait-for-binary-proto');
+        $this->run('start', '--wait-for-binary-proto');
         $builder = Cassandra::cluster()
                        ->withPersistentSessions(false)
                        ->withContactPoints('127.0.0.1');
@@ -103,7 +103,7 @@ class CCM
             $builder->withSSL($sslOptions);
         }
 
-        for ($retries = 1; $retries <= 10; $retries++) {
+        for ($retries = 1; $retries <= 20; $retries++) {
             try {
                 $this->cluster = $builder->build();
                 $this->session = $this->cluster->connect();
@@ -111,7 +111,7 @@ class CCM
             } catch (Cassandra\Exception\RuntimeException $e) {
                 unset($this->session);
                 unset($this->cluster);
-                sleep($retries * 0.4);
+                sleep(intval($retries * 0.4));
             }
         }
 
