@@ -1,6 +1,11 @@
-:warning: **The PHP driver is in maintenance mode. We are still accepting pull-requests and we will occasionally release critical bug fixes, but no ongoing active development is being done currently.**
-
 # DataStax PHP Driver for Apache Cassandra
+
+__This is a forked version of the official driver that adds compatibility for modern PHP versions, currently 8.0 and 8.1__
+
+We dropped a bunch of things in regards to building/testing and windows and other platforms. Joyride runs this extension in production as part of docker images based on the official PHP debian images and libcassandra 2.16. *Use at your own risk!*
+
+
+# Original, unchanged README contents
 
 [![Build Status: Linux](https://travis-ci.org/datastax/php-driver.svg)](https://travis-ci.org/datastax/php-driver)
 [![Build Status: Windows](https://ci.appveyor.com/api/projects/status/8vrxpkfl4xm2f3nm?svg=true)](https://ci.appveyor.com/project/DataStax/php-driver)
